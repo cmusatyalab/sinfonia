@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2021-2022 Carnegie Mellon University
+# SPDX-License-Identifier: MIT
+---
+- name: firewall - allow wireguard traffic
+  community.general.ufw:
+    rule: allow
+    port: 51820
+    proto: udp
+
+#- name: annotate node location for kilo
+#  ansible.builtin.command:
+#    cmd: k3s kubectl annotate --overwrite node "{{ ansible_facts.nodename }}" kilo.squat.ai/location="{{ ansible_facts.nodename }}"
+#  changed_when: false
+
+- name: Copy kilo (wireguard mesh) manifests
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "./{{ item }}"
+    mode: '0644'
+  loop:
+    - kilo-crds.yaml
+    - kilo-k3s.yaml
+    - kilo-kube-router.yaml
+    - kilo-podmonitor.yaml
+    - kilo-wg-exporter.yaml
+
+- name: Create kilo namespace
+  kubernetes.core.k8s:
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+    name: kilo
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Install kilo manifests
+  kubernetes.core.k8s:
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+    src: "{{ item }}"
+    state: present
+  loop:
+    - kilo-crds.yaml
+    - kilo-k3s.yaml
+    - kilo-podmonitor.yaml
+    - kilo-wg-exporter.yaml
+
+#- name: install kube-router (network policies)
+#  kubernetes.core.k8s:
+#    kubeconfig: /etc/rancher/k3s/k3s.yaml
+#    src: kilo-kube-router.yaml
+#    state: present

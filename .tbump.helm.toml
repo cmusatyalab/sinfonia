@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2022 Carnegie Mellon University
+# SPDX-License-Identifier: 0BSD
+
+# github_url = "https://github.com/cmusatyalab/sinfonia/"
+
+[version]
+current = "0.3.36"
+regex = '''
+  (?P<major>\d+)
+  \.
+  (?P<minor>\d+)
+  \.
+  (?P<patch>\d+)
+  (?P<extra>\.post\.dev\d+)?
+  '''
+
+[[field]]
+name = "extra"
+default = ""
+
+[git]
+message_template = "Bumping helm chart to {new_version}"
+tag_template = "v{new_version}"
+
+[[file]]
+src = "helm-chart/Chart.yaml"
+version_template = "{major}.{minor}.{patch}"
+search = 'version: {current_version}'
+
+[[before_commit]]
+name = "run unit tests"
+cmd = "poetry run pytest"
+
+[[before_commit]]
+name = "run pre-commit checks"
+cmd = "poetry run pre-commit run -a"

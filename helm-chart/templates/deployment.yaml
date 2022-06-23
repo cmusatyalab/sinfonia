@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sinfonia.fullname" . }}
+  labels:
+    {{- include "sinfonia.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "sinfonia.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "sinfonia.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.imageCredentials }}
+      imagePullSecrets:
+        - name: docker-registry
+      {{- end }}
+      serviceAccountName: {{ include "sinfonia.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.sinfoniaTier1 }}
+          command:
+            - "/venv/bin/sinfonia-tier1"
+          args: []
+          {{- end }}
+          env:
+            - name: SINFONIA_SCORES
+              value: {{ include "sinfonia.scores" . }}
+            {{- if and .Values.sinfoniaTier1Url .Values.sinfoniaTier2Url }}
+            - name: SINFONIA_TIER1_URL
+              value: {{ .Values.sinfoniaTier1Url }}
+            - name: SINFONIA_TIER2_URL
+              value: {{ .Values.sinfoniaTier2Url }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

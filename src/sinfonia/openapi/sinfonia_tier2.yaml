@@ -1,0 +1,174 @@
+#
+# Sinfonia Tier2 API
+#
+# Responsible for deploy helm charts to a local kubernetes cluster as requested
+# by Sinfonia Tier3 applications.
+#
+# Copyright (c) 2021-2022 Carnegie Mellon University
+#
+# SPDX-License-Identifier: MIT
+#
+
+openapi: 3.0.3
+info:
+  title: Sinfonia Tier2 API
+  version: 1.0.0
+servers:
+  - url: /api/v1
+
+paths:
+  '/deploy/{uuid}/{application_key}':
+    post:
+      summary: create a new deployment
+      responses:
+        "200":
+            description: "Successfully deployed to cloudlet"
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    '$ref': '#/components/schemas/CloudletDeployment'
+        "404":
+            description: "Failed to create deployment"
+    get:
+      summary: obtains a list of candidate cloudlets
+      responses:
+        "200":
+            description: "returning candidate cloudlets"
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    '$ref': '#/components/schemas/CloudletInfo'
+        "404":
+            description: "No suitable cloudlets found"
+    parameters:
+      - name: uuid
+        description: uuid of the desired application backend
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: application_key
+        description: base64 encoded wireguard public key (preferably web-safe encoding)
+        in: path
+        required: true
+        schema:
+          type: string
+          format: path
+      - name: results
+        description: maximum number of accepted results
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - name: X-ClientIP
+        in: header
+        schema:
+          type: string
+          #format: ipv4 or ipv6
+      - name: X-Location
+        in: header
+        schema:
+          "$ref": "#/components/schemas/GeoLocation"
+
+components:
+  schemas:
+    CloudletDeployment:
+      type: object
+      required:
+        - UUID
+        - ApplicationKey
+        - Status
+        - Expires
+        - TunnelConfig
+      properties:
+        DeploymentName:
+          type: string
+        UUID:
+          type: string
+          format: uuid
+        ApplicationKey:
+          type: string
+          format: wireguard_public_key
+        Status:
+          type: string
+        Expires:
+          type: string
+          format: datetime
+        TunnelConfig:
+          "$ref": "#/components/schemas/WireguardConfig"
+    CloudletInfo:
+      type: object
+      required:
+        - endpoint
+      properties:
+        last_update:
+          type: string
+          format: date-time
+        endpoint:
+          type: string
+          format: uri
+        resources:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+        locations:
+          type: array
+          items:
+            "$ref": "#/components/schemas/GeoLocation"
+        local_networks:
+          type: array
+          items:
+            "$ref": "#/components/schemas/NetworkAddress"
+        accepted_clients:
+          type: array
+          items:
+            "$ref": "#/components/schemas/NetworkAddress"
+        rejected_clients:
+          type: array
+          items:
+            "$ref": "#/components/schemas/NetworkAddress"
+    GeoLocation:
+      type: array
+      items:
+        type: number
+        format: float
+      minItems: 2
+      maxItems: 2
+    NetworkAddress:
+      type: string
+      #format: ip_mask
+    WireguardConfig:
+      type: object
+      required:
+        - publicKey
+        - allowedIPs
+        - endpoint
+        - address
+        - dns
+      properties:
+        publicKey:
+          type: string
+          format: wireguard_public_key
+        allowedIPs:
+          type: array
+          items:
+            "$ref": "#/components/schemas/NetworkAddress"
+        endpoint:
+          type: string
+          #format: ip_port
+        address:
+          type: array
+          items:
+            "$ref": "#/components/schemas/NetworkAddress"
+        dns:
+          type: array
+          items:
+            type: string
+            #format: ipv4   (actually mixed ipv4/ipv6 and search domains)

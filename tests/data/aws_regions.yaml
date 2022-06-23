@@ -1,0 +1,92 @@
+# SPDX-FileCopyrightText: 2022 Carnegie Mellon University
+# SPDX-License-Identifier: 0BSD
+#
+# List of AWS regions, endpoints make no sense, this is just for testing
+#
+name: AWS Northern Virginia
+endpoint: http://127.0.0.1/AWS-us-east-1/api/v1/deploy
+location: [39.0, -77.5]
+---
+name: AWS Ohio
+endpoint: http://127.0.0.1/AWS-us-east-2/api/v1/deploy
+location: [40.3, -84.9]
+---
+name: AWS Northern California
+endpoint: http://127.0.0.1/AWS-us-west-1/api/v1/deploy
+location: [39.0, -121.7]
+---
+name: AWS Oregon
+endpoint: http://127.0.0.1/AWS-us-west-2/api/v1/deploy
+location: [46.8, -121.7]
+---
+name: AWS Cape Town
+endpoint: http://127.0.0.1/AWS-af-south-1/api/v1/deploy
+location: [-33.9, 18.4]
+---
+name: AWS Hong Kong
+endpoint: http://127.0.0.1/AWS-ap-east-1/api/v1/deploy
+location: [22.4, 113.8]
+---
+name: AWS Singapore
+endpoint: http://127.0.0.1/AWS-ap-southeast-1/api/v1/deploy
+location: [1.3, 103.75]
+---
+name: AWS Sydney
+endpoint: http://127.0.0.1/AWS-ap-southeast-2/api/v1/deploy
+location: [-33.86, 151.21]
+---
+name: AWS Jakarta
+endpoint: http://127.0.0.1/AWS-ap-southeast-3/api/v1/deploy
+location: [-6.2, 106.7]
+---
+name: AWS Mumbai
+endpoint: http://127.0.0.1/AWS-ap-south-1/api/v1/deploy
+location: [18.9, 72.6]
+---
+name: AWS Tokyo
+endpoint: http://127.0.0.1/AWS-ap-northeast-1/api/v1/deploy
+location: [35.7, 139.6]
+---
+name: AWS Seoul
+endpoint: http://127.0.0.1/AWS-ap-northeast-2/api/v1/deploy
+location: [37.6, 126.8]
+---
+name: AWS Osaka
+endpoint: http://127.0.0.1/AWS-ap-northeast-3/api/v1/deploy
+location: [34.7, 135.4]
+---
+name: AWS Canada
+endpoint: http://127.0.0.1/AWS-ca-central-1/api/v1/deploy
+location: [45.4, -77.0]
+---
+name: AWS Frankfurt
+endpoint: http://127.0.0.1/AWS-eu-central-1/api/v1/deploy
+location: [50.1, 8.5]
+---
+name: AWS Ireland
+endpoint: http://127.0.0.1/AWS-eu-west-1/api/v1/deploy
+location: [53.4, -10.3]
+---
+name: AWS London
+endpoint: http://127.0.0.1/AWS-eu-west-2/api/v1/deploy
+location: [51.5, 0.0]
+---
+name: AWS Milan
+endpoint: http://127.0.0.1/AWS-eu-south-1/api/v1/deploy
+location: [45.5, 9.1]
+---
+name: AWS Paris
+endpoint: http://127.0.0.1/AWS-eu-west-3/api/v1/deploy
+location: [48.9, 2.3]
+---
+name: AWS Stockholm
+endpoint: http://127.0.0.1/AWS-eu-north-1/api/v1/deploy
+location: [59.3, 17.8]
+---
+name: AWS Bahrain
+endpoint: http://127.0.0.1/AWS-me-south-1/api/v1/deploy
+location: [25.94, 50.31]
+---
+name: AWS Sao Paulo
+endpoint: http://127.0.0.1/AWS-sa-east-1/api/v1/deploy
+location: [-23.7, -46.9]

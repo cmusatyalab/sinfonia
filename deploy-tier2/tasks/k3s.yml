@@ -1,0 +1,60 @@
+# SPDX-FileCopyrightText: 2021-2022 Carnegie Mellon University
+# SPDX-License-Identifier: MIT
+---
+# k8s recommends running without swap
+- name: disable swap
+  ansible.builtin.command: swapoff -a
+  changed_when: False
+
+- name: disable swap in fstab
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+    replace: '# \1'
+
+- name: firewall - allow access to k8s api
+  community.general.ufw:
+    rule: allow
+    port: 6443
+    proto: tcp
+
+- name: create directory for config overrides
+  ansible.builtin.file:
+    path: /var/lib/rancher/k3s/server/manifests
+    state: directory
+    mode: "0755"
+
+- name: override config to enable traefik ingressclass
+  ansible.builtin.copy:
+    dest: /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
+    content: |
+      apiVersion: helm.cattle.io/v1
+      kind: HelmChartConfig
+      metadata:
+        name: traefik
+        namespace: kube-system
+      spec:
+        valuesContent: |-
+          ingressClass:
+            enabled: true
+
+# Install K3S with upstream install script
+- name: copy k3s install script
+  ansible.builtin.copy:
+    src: k3s-installer.sh
+    dest: ./k3s-installer.sh
+    mode: '0755'
+
+- name: run k3s installer
+  ansible.builtin.command:
+    cmd: ./k3s-installer.sh
+    creates: /etc/rancher/k3s
+
+- name: wait for k3s to finish initializing
+  ansible.builtin.command:
+    cmd: k3s kubectl wait --for=condition=Ready nodes --all --timeout=900s
+  retries: 3
+  delay: 3
+  changed_when: False
+  register: result
+  until: result is success

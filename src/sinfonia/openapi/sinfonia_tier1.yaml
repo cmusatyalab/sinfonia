@@ -1,0 +1,58 @@
+#
+# Sinfonia Tier1 API
+#
+# Responsible for forwarding deployment requests from Sinfonia Tier3
+# to Sinfonia Tier2.
+#
+# Handles registration and resource metric update from Sinfonia Tier2.
+#
+# Copyright (c) 2022 Carnegie Mellon University
+#
+# SPDX-License-Identifier: MIT
+#
+
+openapi: 3.0.3
+info:
+  title: Sinfonia Tier1 API
+  version: 1.0.0
+servers:
+  - url: /api/v1
+
+paths:
+  '/cloudlets/':
+    post:
+      summary: update cloudlet resource metrics
+      requestBody:
+        description: >
+          Update for the current state of a Cloudlet. The caller is expected to
+          include a UUID that is unique to the Tier 2 instance and some
+          fields such as last_update will be ignored by Tier 1.
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/CloudletInfo"
+      responses:
+        "204":
+          description: "Successfully updated metrics"
+        "400":
+          description: "Bad Request, missing UUID or endpoint"
+    get:
+      summary: list currently known Sinfonia Tier2 instances
+      responses:
+        "200":
+          description: "Returning list of known cloudlets"
+          content:
+            "application/json":
+              schema:
+                type: array
+                items:
+                  '$ref': '#/components/schemas/CloudletInfo'
+
+  '/deploy/{uuid}/{application_key}':
+    "$ref": "sinfonia_tier2.yaml#/paths/~1deploy~1{uuid}~1{application_key}"
+
+components:
+  schemas:
+    CloudletInfo:
+      "$ref": "sinfonia_tier2.yaml#/components/schemas/CloudletInfo"

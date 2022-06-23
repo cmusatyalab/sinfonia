@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2021-2022 Carnegie Mellon University
+# SPDX-License-Identifier: 0BSD
+
+/deploy-tier2/files/
+/dist/
+/SCORES/
+/sinfonia-*.tgz
+__pycache__/
+*~
+*.swp

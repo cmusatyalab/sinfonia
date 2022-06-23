@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2022 Carnegie Mellon University
+# SPDX-License-Identifier: 0BSD
+
+.DS_Store
+# VCS dirs
+.git/
+.gitignore
+# Common backup files
+*.swp
+*.bak
+*.orig
+*.tmp
+*~
+# Various IDEs
+.project
+.idea/
+*.tmpproj
+.vscode/
+# Python caches and build artifacts
+__pycache__/
+.mypy-cache/
+.pytest-cache/
+/build/
+/dist/

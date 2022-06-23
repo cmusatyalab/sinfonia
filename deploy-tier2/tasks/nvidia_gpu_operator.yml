@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2021-2022 Carnegie Mellon University
+# SPDX-License-Identifier: MIT
+---
+- name: deploy nvidia gpu-operator
+  kubernetes.core.k8s:
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+    state: present
+    resource_definition:
+      apiVersion: helm.cattle.io/v1
+      kind: HelmChart
+      metadata:
+        name: nvidia-gpu-operator
+        namespace: kube-system
+      spec:
+        chart: gpu-operator
+        #repo: https://helm.ngc.nvidia.com/nvidia
+        repo: https://nvidia.github.io/gpu-operator
+        valuesContent: |-
+          operator:
+            defaultRuntime: containerd
+          driver:
+            enabled: true
+          toolkit:
+            enabled: true
+            env:
+            - name: CONTAINERD_SOCKET
+              value: /run/k3s/containerd/containerd.sock
+            - name: CONTAINERD_CONFIG
+              value: /var/lib/rancher/k3s/agent/etc/containerd/config.toml
+            - name: CONTAINERD_SET_AS_DEFAULT
+              value: "true"

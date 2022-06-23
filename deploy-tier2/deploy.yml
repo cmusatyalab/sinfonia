@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: 2021-2022 Carnegie Mellon University
+# SPDX-License-Identifier: MIT
+#
+# ansible playbook to bootstrap kubernetes onto a new Ubuntu 18.04 server
+# and deploy sinfonia-tier2
+#
+# run as: ansible-playbook deploy.yml -i $host,
+#
+# Optionally set the SINFONIA_TIER1_URL environment variable if you
+# want to register with a sinfonia-tier1 instance.
+#  i.e. SINFONIA_TIER1_URL=https://cloudlet.mydomain.org
+---
+- hosts: localhost
+  become: false
+  gather_facts: false
+  no_log: true
+
+  tasks:
+  - name: make sure local directory for deployment files exists
+    ansible.builtin.file:
+      path: "files"
+      state: directory
+
+  - name: update local copy of deployment files
+    ansible.builtin.command:
+      cmd: poetry run invoke update-deployment-files
+      creates: "files/kilo-wg-exporter.yaml"
+
+- hosts: all
+  remote_user: ubuntu
+  become_user: root
+  become: true
+
+  vars:
+    sinfonia_tier1_url: "{{ lookup('env', 'SINFONIA_TIER1_URL') }}"
+    sinfonia_tier2_url: "http://{{ ansible_nodename }}{{ domainname }}"
+    sinfonia_scores: https://storage.cmusatyalab.org/sinfonia-scores/
+    domainname: .elijah.cs.cmu.edu
+
+  #environment:
+  #  K8S_AUTH_KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+
+  tasks:
+  - import_tasks: tasks/ubuntu.yml
+  - import_tasks: tasks/k3s.yml
+  - import_tasks: tasks/kube-prometheus-stack.yml
+  - import_tasks: tasks/kilo.yml
+  - import_tasks: tasks/nvidia_gpu_operator.yml
+
+  #- name: configure storage...
+
+  - name: deploy sinfonia-tier2
+    kubernetes.core.k8s:
+      kubeconfig: /etc/rancher/k3s/k3s.yaml
+      state: present
+      resource_definition:
+        apiVersion: helm.cattle.io/v1
+        kind: HelmChart
+        metadata:
+          name: sinfonia-tier2
+          namespace: kube-system
+        spec:
+          chart: sinfonia-chart
+          repo: oci://ghcr.io/cmusatyalab
+          targetNamespace: default
+          valuesContent: |-
+            sinfoniaTier1Url: "{{ sinfonia_tier1_url }}"
+            sinfoniaTier2Url: "{{ sinfonia_tier2_url }}"
+            sinfoniaScores: "{{ sinfonia_scores }}"
+            ingress:
+              className: traefik
