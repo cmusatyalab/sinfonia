@@ -60,8 +60,8 @@
           name: sinfonia-tier2
           namespace: kube-system
         spec:
-          chart: sinfonia-chart
-          repo: oci://ghcr.io/cmusatyalab
+          chart: sinfonia
+          repo: https://cmusatyalab.github.io/sinfonia
           targetNamespace: default
           valuesContent: |-
             sinfoniaTier1Url: "{{ sinfonia_tier1_url }}"

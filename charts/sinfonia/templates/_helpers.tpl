@@ -64,7 +64,7 @@ Create the name of the service account to use
 {{/*
 Storage location to retrieve helm charts from
 */}}
-{{- define "sinfonia.Scores" -}}
+{{- define "sinfonia.scores" -}}
 {{- if .Values.minio.enable -}}
 {{ default "http://minio/scores" .Values.sinfoniaScores }}
 {{- else -}}

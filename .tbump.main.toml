@@ -27,7 +27,7 @@ src = "pyproject.toml"
 search = 'version = "{current_version}"'
 
 [[file]]
-src = "helm-chart/Chart.yaml"
+src = "charts/sinfonia/Chart.yaml"
 version_template = "v{major}.{minor}.{patch}"
 search = 'appVersion: "{current_version}"'
 

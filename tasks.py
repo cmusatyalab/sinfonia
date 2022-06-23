@@ -149,6 +149,18 @@ def update_deployment_files(c):
 
 @task
 def build_docker_dev(c):
-    """Build and push a development image to GHCR (needs authentication)"""
+    """Build and push a Docker image to GHCR (needs authentication)"""
     c.run("docker build -t ghcr.io/cmusatyalab/sinfonia:dev .")
     c.run("docker push ghcr.io/cmusatyalab/sinfonia:dev")
+
+
+@task
+def build_helm_dev(c):
+    """Build and publish a Helm chart for development"""
+    c.run("helm lint charts/*")
+    c.run("helm package charts/sinfonia --version=0.0.0 --app-version=dev")
+    # c.run("git checkout gh-pages")
+    # c.run("helm repo index . --merge index.yaml")
+    # c.run("git add index.yaml *.tgz")
+    # c.run("git commit -m 'Publish Helm charts'")
+    # c.run("git checkout main")

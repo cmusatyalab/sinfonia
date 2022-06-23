@@ -15,7 +15,7 @@ repos:
       - id: check-toml
       - id: check-yaml
         args: ["--allow-multiple-documents"]
-        exclude: "^helm-chart/templates/"
+        exclude: "^charts/.*/templates/"
       - id: end-of-file-fixer
       - id: trailing-whitespace
 

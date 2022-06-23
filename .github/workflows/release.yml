@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2022 Carnegie Mellon University
 # SPDX-License-Identifier: 0BSD
 
-name: Create and publish a Docker image
+name: Create and publish Docker image and Helm chart
 
 on:
   push:
@@ -41,3 +41,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.output.labels }}
+      - name: Publish helm charts
+        uses: stefanprodan/helm-gh-pages@master
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
