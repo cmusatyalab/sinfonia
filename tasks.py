@@ -145,3 +145,10 @@ def update_deployment_files(c):
                 f.write("---\n".join(result).encode("utf-8"))
             else:
                 f.write(r.content)
+
+
+@task
+def build_docker_dev(c):
+    """Build and push a development image to GHCR (needs authentication)"""
+    c.run("docker build -t ghcr.io/cmusatyalab/sinfonia:dev .")
+    c.run("docker push ghcr.io/cmusatyalab/sinfonia:dev")

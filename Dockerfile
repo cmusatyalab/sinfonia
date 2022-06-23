@@ -3,6 +3,11 @@
 
 FROM python:3-slim as base
 
+LABEL org.opencontainers.image.description='Discovery and deployment for edge-native applications' \
+      org.opencontainers.image.source='https://github.com/cmusatyalab/sinfonia' \
+      org.opencontainers.image.vendor='Carnegie Mellon University' \
+      org.opencontainers.image.licenses='MIT'
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONFAULTHANDLER=1 \
     PYTHONHASHSEED=random \
@@ -25,6 +30,7 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry export -f requirements.txt | /venv/bin/pip install --no-deps -r /dev/stdin
 
 COPY src ./src
+COPY tests ./tests
 RUN poetry build && /venv/bin/pip install dist/*.whl
 
 FROM base as final
