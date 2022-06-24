@@ -1,0 +1,25 @@
+apiVersion: v1
+entries:
+  helloworld:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-06-23T23:27:16.296481359-04:00"
+    description: A Helm chart for Kubernetes
+    digest: 3b9ea046e228c8e76437139f58a0974d7c88aa11e48958e6e9ed3898c5067753
+    name: helloworld
+    type: application
+    urls:
+    - helloworld-0.1.0.tgz
+    version: 0.1.0
+  sinfonia:
+  - apiVersion: v2
+    appVersion: dev
+    created: "2022-06-23T23:27:16.297664871-04:00"
+    description: A Helm chart for deploying Sinfonia Tier1 or Tier2 in Kubernetes
+    digest: 99564e0cb0600f42312cdd2c3a9b7b0db092cba82e138a67da6d73f9765638ee
+    name: sinfonia
+    type: application
+    urls:
+    - sinfonia-0.0.0.tgz
+    version: 0.0.0
+generated: "2022-06-23T23:27:16.295764105-04:00"
