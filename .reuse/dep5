@@ -4,6 +4,10 @@ Files: charts/helloworld/*
 Copyright: 2022 Helm Authors
 License: 0BSD
 
+Files: charts/openrtist/*
+Copyright: 2022 Carnegie Mellon University
+License: 0BSD
+
 Files: charts/sinfonia/*
 Copyright: 2022 Carnegie Mellon University
 License: MIT
@@ -15,3 +19,11 @@ License: 0BSD
 Files: README.md
 Copyright: 2021-2022 Carnegie Mellon University
 License: MIT
+
+Files: TODO.md
+Copyright: 2021-2022 Carnegie Mellon University
+License: MIT
+
+Files: SCORES/*.yaml
+Copyright: 2022 Carnegie Mellon University
+License: 0BSD
