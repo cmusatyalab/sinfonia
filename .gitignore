@@ -3,8 +3,9 @@
 
 /deploy-tier2/files/
 /dist/
-/helloworld-*.tgz
-/sinfonia-*.tgz
+helloworld-*.tgz
+openrtist-*.tgz
+sinfonia-*.tgz
 __pycache__/
 *~
 *.swp

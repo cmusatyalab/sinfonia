@@ -19,6 +19,8 @@
 # Python caches and build artifacts
 __pycache__/
 .mypy-cache/
+.nox/
 .pytest-cache/
 /build/
+/charts/
 /dist/
