@@ -71,10 +71,10 @@ def report_to_tier1():
 
     try:
         requests.post(
-            tier1_endpoint,
+            str(tier1_endpoint),
             json={
                 "uuid": str(cluster.uuid),
-                "endpoint": tier2_endpoint,
+                "endpoint": str(tier2_endpoint),
                 "resources": resources,
             },
         )
