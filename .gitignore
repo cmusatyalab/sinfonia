@@ -3,7 +3,7 @@
 
 /deploy-tier2/files/
 /dist/
-/SCORES/
+/helloworld-*.tgz
 /sinfonia-*.tgz
 __pycache__/
 *~

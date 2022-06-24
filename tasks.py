@@ -158,6 +158,7 @@ def build_docker_dev(c):
 def build_helm_dev(c):
     """Build and publish a Helm chart for development"""
     c.run("helm lint charts/*")
+    c.run("helm package charts/helloworld")
     c.run("helm package charts/sinfonia --version=0.0.0 --app-version=dev")
     # c.run("git checkout gh-pages")
     # c.run("helm repo index . --merge index.yaml")

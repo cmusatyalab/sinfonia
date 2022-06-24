@@ -1,0 +1,8 @@
+description: |-
+  Simple test deployment.
+  Deploys an nginx server which should be accessible through the wireguard
+  tunnel as 'http://helloworld/'.
+chart: https://cmusatyalab.github.io/sinfonia/helloworld
+version: 0.1.0
+values:
+  fullnameOverride: helloworld
