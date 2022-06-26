@@ -315,7 +315,7 @@ class Cloudlet:
             endpoint=str(self.endpoint),
             locations=self.locations,
             accepted_clients=[str(client) for client in self.accepted_clients],
-            rejected_client=[str(client) for client in self.rejected_clients],
+            rejected_clients=[str(client) for client in self.rejected_clients],
             resources=self.resources,
         )
         if self.last_update is not None:

@@ -84,9 +84,11 @@ components:
         - UUID
         - ApplicationKey
         - Status
-        - Expires
         - TunnelConfig
       properties:
+        Created:
+          type: string
+          format: datetime
         DeploymentName:
           type: string
         UUID:
@@ -97,9 +99,6 @@ components:
           format: wireguard_public_key
         Status:
           type: string
-        Expires:
-          type: string
-          format: datetime
         TunnelConfig:
           "$ref": "#/components/schemas/WireguardConfig"
     CloudletInfo:
