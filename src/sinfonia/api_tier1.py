@@ -12,6 +12,7 @@ import logging
 from ipaddress import ip_address
 from itertools import chain, filterfalse, islice, zip_longest
 from typing import Optional
+from uuid import UUID
 
 from connexion import NoContent
 from connexion.exceptions import ProblemException
@@ -19,6 +20,7 @@ from flask import current_app, request
 from flask.views import MethodView
 
 from . import cloudlets
+from .wireguard_key import WireguardKey
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -30,6 +32,9 @@ MAX_RESULTS = 3
 
 class DeployView(MethodView):
     def post(self, uuid, application_key, results=1):
+        uuid = UUID(uuid)
+        application_key = WireguardKey(application_key)
+
         # set number of returned results between 1 and MAX_RESULTS
         max_results = max(1, min(results, MAX_RESULTS))
 
