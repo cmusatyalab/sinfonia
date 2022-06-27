@@ -127,7 +127,6 @@ metadata:
     findcloudlet.org/uuid: "{self.score.uuid}"
     findcloudlet.org/key: "{self.client_public_key.urlsafe}"
     findcloudlet.org/client: "{self.client_ip}"
-    findcloudlet.org/chart: "{self.score.chart_version}"
   annotations:
     findcloudlet.org/created: "{self.created}"
 spec:
