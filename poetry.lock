@@ -25,6 +25,18 @@ twisted = ["twisted"]
 zookeeper = ["kazoo"]
 
 [[package]]
+name = "arrow"
+version = "1.2.2"
+description = "Better dates & times for Python"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+python-dateutil = ">=2.7.0"
+typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
+
+[[package]]
 name = "atomicwrites"
 version = "1.4.0"
 description = "Atomic file writes."
@@ -56,6 +68,14 @@ python-versions = ">=3.6"
 
 [package.extras]
 tzdata = ["tzdata"]
+
+[[package]]
+name = "cached-property"
+version = "1.5.2"
+description = "A decorator for caching properties in classes."
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "certifi"
@@ -257,6 +277,17 @@ python-versions = "*"
 Flask = "*"
 
 [[package]]
+name = "fqdn"
+version = "1.5.1"
+description = "Validates fully-qualified domain names against RFC 1123, so that they are acceptable to modern bowsers"
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0, !=3.1, !=3.2, !=3.3, !=3.4, <4"
+
+[package.dependencies]
+cached-property = {version = ">=1.3.0", markers = "python_version < \"3.8\""}
+
+[[package]]
 name = "geographiclib"
 version = "1.52"
 description = "The geodesic routines from GeographicLib"
@@ -305,7 +336,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "importlib-metadata"
-version = "4.11.4"
+version = "4.12.0"
 description = "Read metadata from Python packages"
 category = "main"
 optional = false
@@ -318,7 +349,7 @@ zipp = ">=0.5"
 [package.extras]
 docs = ["sphinx", "jaraco.packaging (>=9)", "rst.linker (>=1.9)"]
 perf = ["ipython"]
-testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "packaging", "pyfakefs", "flufl.flake8", "pytest-perf (>=0.9.2)", "pytest-black (>=0.3.7)", "pytest-mypy (>=0.9.1)", "importlib-resources (>=1.3)"]
+testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.3)", "packaging", "pyfakefs", "flufl.flake8", "pytest-perf (>=0.9.2)", "pytest-black (>=0.3.7)", "pytest-mypy (>=0.9.1)", "importlib-resources (>=1.3)"]
 
 [[package]]
 name = "importlib-resources"
@@ -360,6 +391,17 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "isoduration"
+version = "20.11.0"
+description = "Operations with ISO 8601 durations"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+arrow = ">=0.15.0"
+
+[[package]]
 name = "itsdangerous"
 version = "2.1.2"
 description = "Safely pass data to untrusted environments and back."
@@ -396,13 +438,13 @@ jsonpointer = ">=1.9"
 name = "jsonpointer"
 version = "2.3"
 description = "Identify specific nodes in a JSON document (RFC 6901)"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "jsonschema"
-version = "4.6.0"
+version = "4.5.1"
 description = "An implementation of JSON Schema validation for Python"
 category = "main"
 optional = false
@@ -410,14 +452,22 @@ python-versions = ">=3.7"
 
 [package.dependencies]
 attrs = ">=17.4.0"
+fqdn = {version = "*", optional = true, markers = "extra == \"format_nongpl\""}
+idna = {version = "*", optional = true, markers = "extra == \"format_nongpl\""}
 importlib-metadata = {version = "*", markers = "python_version < \"3.8\""}
 importlib-resources = {version = ">=1.4.0", markers = "python_version < \"3.9\""}
+isoduration = {version = "*", optional = true, markers = "extra == \"format_nongpl\""}
+jsonpointer = {version = ">1.13", optional = true, markers = "extra == \"format_nongpl\""}
 pyrsistent = ">=0.14.0,<0.17.0 || >0.17.0,<0.17.1 || >0.17.1,<0.17.2 || >0.17.2"
+rfc3339-validator = {version = "*", optional = true, markers = "extra == \"format_nongpl\""}
+rfc3986-validator = {version = ">0.1.0", optional = true, markers = "extra == \"format_nongpl\""}
 typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
+uri-template = {version = "*", optional = true, markers = "extra == \"format_nongpl\""}
+webcolors = {version = ">=1.11", optional = true, markers = "extra == \"format_nongpl\""}
 
 [package.extras]
 format = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3987", "uri-template", "webcolors (>=1.11)"]
-format-nongpl = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3986-validator (>0.1.0)", "uri-template", "webcolors (>=1.11)"]
+format_nongpl = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3986-validator (>0.1.0)", "uri-template", "webcolors (>=1.11)"]
 
 [[package]]
 name = "markupsafe"
@@ -483,11 +533,11 @@ python-versions = "*"
 
 [[package]]
 name = "nodeenv"
-version = "1.6.0"
+version = "1.7.0"
 description = "Node.js virtual environment builder"
 category = "dev"
 optional = false
-python-versions = "*"
+python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*"
 
 [[package]]
 name = "openapi-schema-validator"
@@ -778,6 +828,25 @@ fixture = ["fixtures"]
 test = ["fixtures", "mock", "purl", "pytest", "sphinx", "testrepository (>=0.0.18)", "testtools"]
 
 [[package]]
+name = "rfc3339-validator"
+version = "0.1.4"
+description = "A pure python RFC3339 validator"
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+
+[package.dependencies]
+six = "*"
+
+[[package]]
+name = "rfc3986-validator"
+version = "0.1.1"
+description = "Pure python rfc3986 validator"
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+
+[[package]]
 name = "ruamel.yaml"
 version = "0.17.21"
 description = "ruamel.yaml is a YAML parser/emitter that supports roundtrip preservation of comments, seq/map flow style, and map key order"
@@ -921,7 +990,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-pyyaml"
-version = "6.0.8"
+version = "6.0.9"
 description = "Typing stubs for PyYAML"
 category = "dev"
 optional = false
@@ -929,7 +998,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-requests"
-version = "2.27.31"
+version = "2.28.0"
 description = "Typing stubs for requests"
 category = "dev"
 optional = false
@@ -988,6 +1057,17 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
+name = "uri-template"
+version = "1.2.0"
+description = "RFC 6570 URI Template Processor"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.extras]
+dev = ["mypy", "flake8 (<4.0.0)", "flake8-annotations", "flake8-bugbear", "flake8-commas", "flake8-comprehensions", "flake8-continuation", "flake8-datetimez", "flake8-docstrings", "flake8-import-order", "flake8-literal", "flake8-noqa", "flake8-requirements", "flake8-type-annotations", "flake8-use-fstring", "pep8-naming"]
+
+[[package]]
 name = "urllib3"
 version = "1.26.9"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -1002,7 +1082,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
 name = "virtualenv"
-version = "20.14.1"
+version = "20.15.0"
 description = "Virtual Python Environment builder"
 category = "dev"
 optional = false
@@ -1018,6 +1098,14 @@ six = ">=1.9.0,<2"
 [package.extras]
 docs = ["proselint (>=0.10.2)", "sphinx (>=3)", "sphinx-argparse (>=0.2.5)", "sphinx-rtd-theme (>=0.4.3)", "towncrier (>=21.3)"]
 testing = ["coverage (>=4)", "coverage-enable-subprocess (>=1)", "flaky (>=3)", "pytest (>=4)", "pytest-env (>=0.6.2)", "pytest-freezegun (>=0.4.1)", "pytest-mock (>=2)", "pytest-randomly (>=1)", "pytest-timeout (>=1)", "packaging (>=20.0)"]
+
+[[package]]
+name = "webcolors"
+version = "1.12"
+description = "A library for working with color names and color values formats defined by HTML and CSS."
+category = "main"
+optional = false
+python-versions = ">=3.7"
 
 [[package]]
 name = "werkzeug"
@@ -1058,12 +1146,16 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "44f49df456190d92066c3142f4ed3ac212ad1549355322a80a561887fd3278ae"
+content-hash = "4caf8e5744293ddca3cfd531bd23b7ddddc5efb2f1937256e5474f79971b7ab5"
 
 [metadata.files]
 apscheduler = [
     {file = "APScheduler-3.9.1-py2.py3-none-any.whl", hash = "sha256:ddc25a0ddd899de44d7f451f4375fb971887e65af51e41e5dcf681f59b8b2c9a"},
     {file = "APScheduler-3.9.1.tar.gz", hash = "sha256:65e6574b6395498d371d045f2a8a7e4f7d50c6ad21ef7313d15b1c7cf20df1e3"},
+]
+arrow = [
+    {file = "arrow-1.2.2-py3-none-any.whl", hash = "sha256:d622c46ca681b5b3e3574fcb60a04e5cc81b9625112d5fb2b44220c36c892177"},
+    {file = "arrow-1.2.2.tar.gz", hash = "sha256:05caf1fd3d9a11a1135b2b6f09887421153b94558e5ef4d090b567b47173ac2b"},
 ]
 atomicwrites = [
     {file = "atomicwrites-1.4.0-py2.py3-none-any.whl", hash = "sha256:6d1784dea7c0c8d4a5172b6c620f40b6e4cbfdf96d783691f2e1302a7b88e197"},
@@ -1090,6 +1182,10 @@ attrs = [
     {file = "backports.zoneinfo-0.2.1-cp38-cp38-win32.whl", hash = "sha256:1b13e654a55cd45672cb54ed12148cd33628f672548f373963b0bff67b217328"},
     {file = "backports.zoneinfo-0.2.1-cp38-cp38-win_amd64.whl", hash = "sha256:4a0f800587060bf8880f954dbef70de6c11bbe59c673c3d818921f042f9954a6"},
     {file = "backports.zoneinfo-0.2.1.tar.gz", hash = "sha256:fadbfe37f74051d024037f223b8e001611eac868b5c5b06144ef4d8b799862f2"},
+]
+cached-property = [
+    {file = "cached-property-1.5.2.tar.gz", hash = "sha256:9fa5755838eecbb2d234c3aa390bd80fbd3ac6b6869109bfc1b499f7bd89a130"},
+    {file = "cached_property-1.5.2-py2.py3-none-any.whl", hash = "sha256:df4f613cf7ad9a588cc381aaf4a512d26265ecebd5eb9e1ba12f1319eb85a6a0"},
 ]
 certifi = [
     {file = "certifi-2022.6.15-py3-none-any.whl", hash = "sha256:fe86415d55e84719d75f8b69414f6438ac3547d2078ab91b67e779ef69378412"},
@@ -1156,6 +1252,10 @@ flask-executor = [
     {file = "Flask-Executor-0.10.0.tar.gz", hash = "sha256:ddb51b9e10f0fbfcff6c2386a5d92957402b7c81b7614eb1f3c77be64bcfd684"},
     {file = "Flask_Executor-0.10.0-py3-none-any.whl", hash = "sha256:074885fc6d04764c86ab7f070818ea87dd08ee54767a216a8e7a00c39550bea2"},
 ]
+fqdn = [
+    {file = "fqdn-1.5.1-py3-none-any.whl", hash = "sha256:3a179af3761e4df6eb2e026ff9e1a3033d3587bf980a0b1b2e1e5d08d7358014"},
+    {file = "fqdn-1.5.1.tar.gz", hash = "sha256:105ed3677e767fb5ca086a0c1f4bb66ebc3c100be518f0e0d755d9eae164d89f"},
+]
 geographiclib = [
     {file = "geographiclib-1.52-py3-none-any.whl", hash = "sha256:8f441c527b0b8a26cd96c965565ff0513d1e4d9952b704bf449409e5015c77b7"},
     {file = "geographiclib-1.52.tar.gz", hash = "sha256:ac400d672b8954b0306bca890b088bb8ba2a757dc8133cca0b878f34b33b2740"},
@@ -1173,8 +1273,8 @@ idna = [
     {file = "idna-3.3.tar.gz", hash = "sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d"},
 ]
 importlib-metadata = [
-    {file = "importlib_metadata-4.11.4-py3-none-any.whl", hash = "sha256:c58c8eb8a762858f49e18436ff552e83914778e50e9d2f1660535ffb364552ec"},
-    {file = "importlib_metadata-4.11.4.tar.gz", hash = "sha256:5d26852efe48c0a32b0509ffbc583fda1a2266545a78d104a6f4aff3db17d700"},
+    {file = "importlib_metadata-4.12.0-py3-none-any.whl", hash = "sha256:7401a975809ea1fdc658c3aa4f78cc2195a0e019c5cbc4c06122884e9ae80c23"},
+    {file = "importlib_metadata-4.12.0.tar.gz", hash = "sha256:637245b8bab2b6502fcbc752cc4b7a6f6243bb02b31c5c26156ad103d3d45670"},
 ]
 importlib-resources = [
     {file = "importlib_resources-5.8.0-py3-none-any.whl", hash = "sha256:7952325ffd516c05a8ad0858c74dff2c3343f136fe66a6002b2623dd1d43f223"},
@@ -1191,6 +1291,10 @@ iniconfig = [
 invoke = [
     {file = "invoke-1.7.1-py3-none-any.whl", hash = "sha256:2dc975b4f92be0c0a174ad2d063010c8a1fdb5e9389d69871001118b4fcac4fb"},
     {file = "invoke-1.7.1.tar.gz", hash = "sha256:7b6deaf585eee0a848205d0b8c0014b9bf6f287a8eb798818a642dff1df14b19"},
+]
+isoduration = [
+    {file = "isoduration-20.11.0-py3-none-any.whl", hash = "sha256:b2904c2a4228c3d44f409c8ae8e2370eb21a26f7ac2ec5446df141dde3452042"},
+    {file = "isoduration-20.11.0.tar.gz", hash = "sha256:ac2f9015137935279eac671f94f89eb00584f940f5dc49462a0c4ee692ba1bd9"},
 ]
 itsdangerous = [
     {file = "itsdangerous-2.1.2-py3-none-any.whl", hash = "sha256:2c2349112351b88699d8d4b6b075022c0808887cb7ad10069318a8b0bc88db44"},
@@ -1209,8 +1313,8 @@ jsonpointer = [
     {file = "jsonpointer-2.3.tar.gz", hash = "sha256:97cba51526c829282218feb99dab1b1e6bdf8efd1c43dc9d57be093c0d69c99a"},
 ]
 jsonschema = [
-    {file = "jsonschema-4.6.0-py3-none-any.whl", hash = "sha256:1c92d2db1900b668201f1797887d66453ab1fbfea51df8e4b46236689c427baf"},
-    {file = "jsonschema-4.6.0.tar.gz", hash = "sha256:9d6397ba4a6c0bf0300736057f649e3e12ecbc07d3e81a0dacb72de4e9801957"},
+    {file = "jsonschema-4.5.1-py3-none-any.whl", hash = "sha256:71b5e39324422543546572954ce71c67728922c104902cb7ce252e522235b33f"},
+    {file = "jsonschema-4.5.1.tar.gz", hash = "sha256:7c6d882619340c3347a1bf7315e147e6d3dae439033ae6383d6acb908c101dfc"},
 ]
 markupsafe = [
     {file = "MarkupSafe-2.1.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:86b1f75c4e7c2ac2ccdaec2b9022845dbb81880ca318bb7a0a01fbf7813e3812"},
@@ -1351,8 +1455,8 @@ mypy-extensions = [
     {file = "mypy_extensions-0.4.3.tar.gz", hash = "sha256:2d82818f5bb3e369420cb3c4060a7970edba416647068eb4c5343488a6c604a8"},
 ]
 nodeenv = [
-    {file = "nodeenv-1.6.0-py2.py3-none-any.whl", hash = "sha256:621e6b7076565ddcacd2db0294c0381e01fd28945ab36bcf00f41c5daf63bef7"},
-    {file = "nodeenv-1.6.0.tar.gz", hash = "sha256:3ef13ff90291ba2a4a7a4ff9a979b63ffdd00a464dbe04acf0ea6471517a4c2b"},
+    {file = "nodeenv-1.7.0-py2.py3-none-any.whl", hash = "sha256:27083a7b96a25f2f5e1d8cb4b6317ee8aeda3bdd121394e5ac54e498028a042e"},
+    {file = "nodeenv-1.7.0.tar.gz", hash = "sha256:e0e7f7dfb85fc5394c6fe1e8fa98131a2473e04311a45afb6508f7cf1836fa2b"},
 ]
 openapi-schema-validator = [
     {file = "openapi-schema-validator-0.2.3.tar.gz", hash = "sha256:2c64907728c3ef78e23711c8840a423f0b241588c9ed929855e4b2d1bb0cf5f2"},
@@ -1522,6 +1626,14 @@ requests-mock = [
     {file = "requests-mock-1.9.3.tar.gz", hash = "sha256:8d72abe54546c1fc9696fa1516672f1031d72a55a1d66c85184f972a24ba0eba"},
     {file = "requests_mock-1.9.3-py2.py3-none-any.whl", hash = "sha256:0a2d38a117c08bb78939ec163522976ad59a6b7fdd82b709e23bb98004a44970"},
 ]
+rfc3339-validator = [
+    {file = "rfc3339_validator-0.1.4-py2.py3-none-any.whl", hash = "sha256:24f6ec1eda14ef823da9e36ec7113124b39c04d50a4d3d3a3c2859577e7791fa"},
+    {file = "rfc3339_validator-0.1.4.tar.gz", hash = "sha256:138a2abdf93304ad60530167e51d2dfb9549521a836871b88d7f4695d0022f6b"},
+]
+rfc3986-validator = [
+    {file = "rfc3986_validator-0.1.1-py2.py3-none-any.whl", hash = "sha256:2f235c432ef459970b4306369336b9d5dbdda31b510ca1e327636e01f528bfa9"},
+    {file = "rfc3986_validator-0.1.1.tar.gz", hash = "sha256:3d44bde7921b3b9ec3ae4e3adca370438eccebc676456449b145d533b240d055"},
+]
 "ruamel.yaml" = [
     {file = "ruamel.yaml-0.17.21-py3-none-any.whl", hash = "sha256:742b35d3d665023981bd6d16b3d24248ce5df75fdb4e2924e93a05c1f8b61ca7"},
     {file = "ruamel.yaml-0.17.21.tar.gz", hash = "sha256:8b7ce697a2f212752a35c1ac414471dc16c424c9573be4926b56ff3f5d23b7af"},
@@ -1628,12 +1740,12 @@ types-python-dateutil = [
     {file = "types_python_dateutil-2.8.18-py3-none-any.whl", hash = "sha256:fd5ed97262b76ae684695ea38ace8dd7c1bc9491aba7eb4edf6654b7ecabc870"},
 ]
 types-pyyaml = [
-    {file = "types-PyYAML-6.0.8.tar.gz", hash = "sha256:d9495d377bb4f9c5387ac278776403eb3b4bb376851025d913eea4c22b4c6438"},
-    {file = "types_PyYAML-6.0.8-py3-none-any.whl", hash = "sha256:56a7b0e8109602785f942a11ebfbd16e97d5d0e79f5fbb077ec4e6a0004837ff"},
+    {file = "types-PyYAML-6.0.9.tar.gz", hash = "sha256:33ae75c84b8f61fddf0c63e9c7e557db9db1694ad3c2ee8628ec5efebb5a5e9b"},
+    {file = "types_PyYAML-6.0.9-py3-none-any.whl", hash = "sha256:b738e9ef120da0af8c235ba49d3b72510f56ef9bcc308fc8e7357100ff122284"},
 ]
 types-requests = [
-    {file = "types-requests-2.27.31.tar.gz", hash = "sha256:6fab97b99fea52b9c7b466a4dd93e06bb325bc7e7420475e87831026a8dd35cc"},
-    {file = "types_requests-2.27.31-py3-none-any.whl", hash = "sha256:1b6cf6a2bf57fd8018c1b636b69762900466fafddfb62e1330e092f3d4b0966a"},
+    {file = "types-requests-2.28.0.tar.gz", hash = "sha256:9863d16dfbb3fa55dcda64fa3b989e76e8859033b26c1e1623e30465cfe294d3"},
+    {file = "types_requests-2.28.0-py3-none-any.whl", hash = "sha256:85383b4ef0535f639c3f06c5bbb6494bbf59570c4cd88bbcf540f0b2ac1b49ab"},
 ]
 types-urllib3 = [
     {file = "types-urllib3-1.26.15.tar.gz", hash = "sha256:c89283541ef92e344b7f59f83ea9b5a295b16366ceee3f25ecfc5593c79f794e"},
@@ -1655,13 +1767,21 @@ unidecode = [
     {file = "Unidecode-1.3.4-py3-none-any.whl", hash = "sha256:afa04efcdd818a93237574791be9b2817d7077c25a068b00f8cff7baa4e59257"},
     {file = "Unidecode-1.3.4.tar.gz", hash = "sha256:8e4352fb93d5a735c788110d2e7ac8e8031eb06ccbfe8d324ab71735015f9342"},
 ]
+uri-template = [
+    {file = "uri_template-1.2.0-py3-none-any.whl", hash = "sha256:f1699c77b73b925cf4937eae31ab282a86dc885c333f2e942513f08f691fc7db"},
+    {file = "uri_template-1.2.0.tar.gz", hash = "sha256:934e4d09d108b70eb8a24410af8615294d09d279ce0e7cbcdaef1bd21f932b06"},
+]
 urllib3 = [
     {file = "urllib3-1.26.9-py2.py3-none-any.whl", hash = "sha256:44ece4d53fb1706f667c9bd1c648f5469a2ec925fcf3a776667042d645472c14"},
     {file = "urllib3-1.26.9.tar.gz", hash = "sha256:aabaf16477806a5e1dd19aa41f8c2b7950dd3c746362d7e3223dbe6de6ac448e"},
 ]
 virtualenv = [
-    {file = "virtualenv-20.14.1-py2.py3-none-any.whl", hash = "sha256:e617f16e25b42eb4f6e74096b9c9e37713cf10bf30168fb4a739f3fa8f898a3a"},
-    {file = "virtualenv-20.14.1.tar.gz", hash = "sha256:ef589a79795589aada0c1c5b319486797c03b67ac3984c48c669c0e4f50df3a5"},
+    {file = "virtualenv-20.15.0-py2.py3-none-any.whl", hash = "sha256:804cce4de5b8a322f099897e308eecc8f6e2951f1a8e7e2b3598dff865f01336"},
+    {file = "virtualenv-20.15.0.tar.gz", hash = "sha256:4c44b1d77ca81f8368e2d7414f9b20c428ad16b343ac6d226206c5b84e2b4fcc"},
+]
+webcolors = [
+    {file = "webcolors-1.12-py3-none-any.whl", hash = "sha256:d98743d81d498a2d3eaf165196e65481f0d2ea85281463d856b1e51b09f62dce"},
+    {file = "webcolors-1.12.tar.gz", hash = "sha256:16d043d3a08fd6a1b1b7e3e9e62640d09790dce80d2bdd4792a175b35fe794a9"},
 ]
 werkzeug = [
     {file = "Werkzeug-2.1.2-py3-none-any.whl", hash = "sha256:72a4b735692dd3135217911cbeaa1be5fa3f62bffb8745c5215420a03dc55255"},
