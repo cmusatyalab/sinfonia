@@ -77,23 +77,23 @@ def update_deployment_files(c):
 
     manifest_patches = [
         # podmonitor_jsonpatch
-        [
-            {"op": "test", "path": "/kind", "value": "PodMonitor"},
-            {
-                "op": "add",
-                "path": "/metadata/labels/release",
-                "value": "kube-prometheus-stack",
-            },
-        ],
+        # [
+        #    {"op": "test", "path": "/kind", "value": "PodMonitor"},
+        #    {
+        #        "op": "add",
+        #        "path": "/metadata/labels/release",
+        #        "value": "kube-prometheus-stack",
+        #    },
+        # ],
         # servicemonitor_jsonpatch
-        [
-            {"op": "test", "path": "/kind", "value": "ServiceMonitor"},
-            {
-                "op": "add",
-                "path": "/metadata/labels/release",
-                "value": "kube-prometheus-stack",
-            },
-        ],
+        # [
+        #    {"op": "test", "path": "/kind", "value": "ServiceMonitor"},
+        #    {
+        #        "op": "add",
+        #        "path": "/metadata/labels/release",
+        #        "value": "kube-prometheus-stack",
+        #    },
+        # ],
         # wgexporter_jsonpatch
         [
             {"op": "test", "path": "/kind", "value": "DaemonSet"},

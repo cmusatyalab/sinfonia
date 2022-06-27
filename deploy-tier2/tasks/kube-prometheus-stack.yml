@@ -82,11 +82,15 @@
                     resources:
                       requests:
                         storage: 10Gi
+              podMonitorSelectorNilUsesHelmValues: false
+              #probeSelectorNilUsesHelmValues: false
+              #ruleSelectorNilUsesHelmValues: false
+              serviceMonitorSelectorNilUsesHelmValues: false
             additionalServiceMonitors:
               - name: gpu-operator-dcgm-exporter
                 namespaceSelector:
                   matchNames:
-                    - kube-system
+                    - gpu-operator
                 selector:
                   matchLabels:
                     app: nvidia-dcgm-exporter

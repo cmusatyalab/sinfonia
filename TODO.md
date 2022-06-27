@@ -11,6 +11,16 @@ Tier 1
 Tier 2
 ======
 
+- figure out how to discover when the kubernetes cluster is actually fully
+  deployed and ready to deploy backends.
+  Althought the tier2 pod starts pretty quickly, it takes almost 4 minutes
+  before all the other pods are done after a reboot. And this is on a cloudlet
+  where all containers are fully cached and kernel modules have already been
+  built.
+
+- How to handle a multi-node cloudlet, we have to check resource utilization on
+  a per node basis and report the best available one(s)?
+
 - Tier2 to Tier1 reporting
 
     %:
@@ -18,8 +28,8 @@ Tier 2
        v  memory
        v  uplink
        v  downlink
+       v  gpu utilization
        o  loadavg
-       o  gpu utilization
 
 - report USE metrics (usage, saturation, errors)?
 

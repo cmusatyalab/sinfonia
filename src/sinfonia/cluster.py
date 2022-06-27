@@ -13,6 +13,7 @@ from __future__ import annotations
 import ipaddress
 import json
 import logging
+import math
 import random
 from ipaddress import IPv4Address
 from typing import Iterator, Sequence
@@ -32,10 +33,11 @@ from .deployment_score import get_deployment_score
 from .wireguard_key import WireguardKey
 
 RESOURCE_QUERIES = {
-    "cpu_ratio": 'sum(rate(node_cpu_seconds_total{mode=~"user|system"}[1m])) / sum(node:node_num_cpu:sum)',  # noqa
-    "mem_ratio": "sum(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes))",  # noqa
+    "cpu_ratio": 'sum(rate(node_cpu_seconds_total{mode!="idle"}[1m])) / sum(node:node_num_cpu:sum)',  # noqa
+    "mem_ratio": "sum(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) / count(node_memory_MemTotal_bytes)",  # noqa
     "net_rx_rate": "instance:node_network_receive_bytes_excluding_lo:rate5m",
     "net_tx_rate": "instance:node_network_transmit_bytes_excluding_lo:rate5m",
+    "gpu_ratio": "sum(DCGM_FI_DEV_GPU_UTIL) / count(DCGM_FI_DEV_GPU_UTIL)",
 }
 
 LEASE_DURATION = 300  # seconds
@@ -190,7 +192,9 @@ class Cluster:
                 assert result["data"]["resultType"] == "scalar"
 
                 metric = float(result["data"]["result"][1])
-                resources[resource] = metric
+                if math.isfinite(metric):
+                    resources[resource] = metric
+
             except (RequestException, AssertionError, ValueError):
                 logging.exception(f"Failed to retrieve {resource}")
                 pass
