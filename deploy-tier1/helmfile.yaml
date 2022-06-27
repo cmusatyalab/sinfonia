@@ -1,9 +1,18 @@
 # SPDX-FileCopyrightText: 2022 Carnegie Mellon University
 # SPDX-License-Identifier: 0BSD
+#
+# Deploy to K8S with helmfile (https://github.com/helmfile/helmfile)
+#
 
 helmDefaults:
   atomic: true
   wait: true
+
+environment:
+  default:
+    deployFQDN: '{{ requiredEnv "SINFONIA_TIER1_FQDN" }}'
+  development:
+  production:
 
 releases:
 - name: sinfonia-tier1
@@ -18,11 +27,15 @@ releases:
             kubernetes.io/ingress-class: "nginx"
             cert-manager.io/cluster-issuer: "letsencrypt-prod"
         hosts:
-          - host: '{{ requiredEnv "SINFONIA_TIER1_FQDN" }}'
+          - host: '{{ .StateValues.deployFQDN }}'
             paths:
               - path: /
                 pathType: Prefix
         tls:
           - secretName: sinfonia-tier1-cert
-            hosts:
-              - '{{ requiredEnv "SINFONIA_TIER1_FQDN" }}'
+            hosts: [ '{{ .StateValues.deployFQDN }}' ]
+      {{ if eq .Environment.Name "development" }}
+      image:
+        tag: dev
+        pullPolicy: Always
+      {{ end }}
