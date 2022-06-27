@@ -120,8 +120,8 @@
   loop:
     - crd/podmonitors.monitoring.coreos.com
     - crd/servicemonitors.monitoring.coreos.com
-  retries: 5
-  delay: 5
+  retries: 6
+  delay: 10
   changed_when: False
   register: result
   until: result is success

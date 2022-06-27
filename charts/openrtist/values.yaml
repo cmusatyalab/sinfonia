@@ -18,6 +18,16 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+# Having some trouble where nvidia-container-toolkit fails to
+# set the default runtime class for k3s containerd.
+#
+# So if you want to use the gpu, specify both
+#
+# runtimeClass: "nvidia"
+# resources:
+#   limits:
+#     nvidia.com/gpu: 1
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true

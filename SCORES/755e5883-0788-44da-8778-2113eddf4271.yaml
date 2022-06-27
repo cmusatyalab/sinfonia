@@ -4,6 +4,7 @@ chart: https://cmusatyalab.github.io/sinfonia/openrtist
 version: 0.1.0
 values:
   fullnameOverride: openrtist
+  runtimeClass: nvidia
   resources:
     limits:
       nvidia.com/gpu: 1
