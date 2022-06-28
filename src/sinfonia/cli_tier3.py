@@ -30,13 +30,15 @@ from openapi_core.contrib.requests import (
 )
 from openapi_core.validation.response.validators import ResponseValidator
 from plumbum import FG, local
-from plumbum.cmd import echo, ip, mkdir, rm, rmdir, sudo, tee, wg
+from plumbum.cmd import echo, ip, mkdir, rm, rmdir, sudo, tee
 from requests.exceptions import ConnectionError, HTTPError
 from wgconfig.wgexec import generate_keypair
 from xdg import xdg_cache_home
 from yarl import URL
 
 app = typer.Typer()
+
+wg = local.get("wg", "echo")
 
 
 def load_application_keys(application_uuid: UUID) -> Dict[str, str]:

@@ -74,7 +74,7 @@ repos:
           - types-requests
 
 #  - repo: https://github.com/fsfe/reuse-tool
-#    rev: v0.12.1
+#    rev: v1.0.0
 #    hooks:
 #      - id: reuse
 #        name: Check SPDX license tags
