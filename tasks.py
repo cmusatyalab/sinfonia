@@ -3,16 +3,21 @@
 
 # pyinvoke file for maintenance tasks
 
+import re
+
 from invoke import task
 
 
 @task
 def update_dependencies(c):
     """Update python package dependencies"""
+    # update project + pre-commit check dependencies
     c.run("poetry update")
     c.run("poetry run pre-commit autoupdate")
+    # make sure project still passes pre-commit and unittests
     c.run("poetry run pre-commit run -a")
     c.run("poetry run pytest")
+    # commit updates
     c.run("git commit -m 'Update dependencies' poetry.lock .pre-commit-config.yaml")
 
 
@@ -26,8 +31,6 @@ def get_current_version(c):
 
 def bump_current_version(c, part):
     """Simplistic version bumping."""
-    import re
-
     current_version = get_current_version(c)
     major, minor, patch = re.match(r"(\d+)\.(\d+)\.(\d+)", current_version).groups()
     if part == "major":

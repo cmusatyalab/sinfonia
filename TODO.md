@@ -59,4 +59,7 @@ Tier 2
 Tier 3
 ======
 
-- merge Tier 3 python client into codebase
+- Improve dependencies.  Should we move this back to click for argument
+  parsing, or switch the rest over to typer.
+
+- Split out functionality, merge common code.
