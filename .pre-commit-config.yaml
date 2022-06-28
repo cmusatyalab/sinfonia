@@ -40,7 +40,7 @@ repos:
         name: Reorder python imports with isort
 
   - repo: https://github.com/psf/black
-    rev: 22.3.0
+    rev: 22.6.0
     hooks:
       - id: black
         name: Format python code with black
