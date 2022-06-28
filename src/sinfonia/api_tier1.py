@@ -55,12 +55,18 @@ class DeployView(MethodView):
         ):
             client_location = None
 
+        if client_location is None:
+            geolite2_reader = current_app.config["GEOLITE2_READER"]
+            client_location = cloudlets.geolocate(geolite2_reader, client_address)
+
         CLOUDLETS = current_app.config["CLOUDLETS"]
         by_nearest = cloudlets.find(CLOUDLETS, client_address, client_location)
 
         # fire off deployment requests
         requests = [
-            cloudlet.deploy_async(uuid, application_key)
+            cloudlet.deploy_async(
+                uuid, application_key, client_address, client_location
+            )
             for cloudlet in islice(by_nearest, max_results)
         ]
 

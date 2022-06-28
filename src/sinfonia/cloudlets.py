@@ -16,7 +16,7 @@ import socket
 from concurrent.futures import Future
 from ipaddress import IPv4Network, IPv6Network, ip_address, ip_interface
 from operator import itemgetter
-from typing import Any, List, Union
+from typing import Any, List, Sequence, Union
 from uuid import UUID, uuid4
 
 import geopy.distance
@@ -271,12 +271,25 @@ class Cloudlet:
             last_update=pendulum.now(),
         )
 
-    def deploy_async(self, app_uuid: UUID, client_key: WireguardKey) -> Future:
+    def deploy_async(
+        self,
+        app_uuid: UUID,
+        client_key: WireguardKey,
+        client_address: str | None = None,
+        client_location: Sequence[float] | None = None,
+    ) -> Future:
         """Initiate backend deployment on this cloudlet."""
 
-        def deploy(url: str) -> dict[str, Any] | None:
+        def deploy(
+            url: str, client_address: str | None, client_location: str | None
+        ) -> dict[str, Any] | None:
             try:
-                r = requests.post(url)
+                headers: dict[str, str] = {}
+                if client_address is not None:
+                    headers["X-ClientIP"] = client_address
+                if client_location is not None:
+                    headers["X-Location"] = f"{client_location[0]},{client_location[1]}"
+                r = requests.post(url, headers=headers)
                 r.raise_for_status()
                 return r.json()
             except requests.exceptions.RequestException:
@@ -286,7 +299,9 @@ class Cloudlet:
         request_url = self.endpoint / str(app_uuid) / client_key.urlsafe
 
         executor = current_app.config["EXECUTOR"]
-        return executor.submit(deploy, str(request_url))
+        return executor.submit(
+            deploy, str(request_url), client_address, client_location
+        )
 
     def deploy(self, app_uuid: UUID, client_key: WireguardKey) -> dict[str, Any]:
         """Request backend deployment on this cloudlet."""
