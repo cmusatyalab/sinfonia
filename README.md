@@ -36,6 +36,40 @@ pick one or more Tier 2 candidates for deployment.
     - reclaimed all state and resources
     - new deployment requests transition to Initializing
 
+## Development workflows
+
+### Tier 1
+
+When developing/debugging Tier1 interactions it is often simplest to create a
+local `cloudlets.yaml` config file that contains static data for one or more
+Tier2 instances and then start a local tier1 instance with
+`poetry run sinfonia-tier1 -c cloudlets.yaml`.
+
+```yaml
+name: Orchestrator@CMU
+endpoint: http://cloudlet.elijah.cs.cmu.edu/api/v1/deploy
+local_networks:
+  - 128.2.0.0/16
+  - 128.237.0.0/16
+location: [40.4439, -79.9444]
+accepted_clients:
+  - 0.0.0.0/0
+resources:
+  cpu_ratio: 0.1
+  mem_ratio: 0.5
+  gpu_ratio: 0.0
+  net_tx_rate: 11000
+  net_rx_rate: 1000
+---
+name: Orchestrator@Home
+endpoint: http://localhost:5000/api/v1/deploy
+location: [40.4465, -79.9032]
+local_networks:
+  - 192.168.0.0/16
+accepted_clients:
+  - 192.168.0.0/16
+```
+
 ## Versioning
 
 There are two different versions in play,

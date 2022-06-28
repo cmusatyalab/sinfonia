@@ -5,7 +5,7 @@ Tier 1
 
 - Tier1 GET should return list of cloudlets without deploying
 
-- document cloudlet.yaml local configuration file
+- Better documentation for cloudlet.yaml local configuration file
 
 
 Tier 2
@@ -42,17 +42,21 @@ Tier 2
 - clean up connecting to cluster, right now there is an ugly hack to fix --help
   when we don't have cluster credentials.
 
-- merge Tier2/cluster.py with Tier1/cloudlets.py (inherit from)
-  useful to track common items to report like location and client ACLs
+- merge Tier2/cluster.py with Tier1/cloudlets.py, useful to track common items
+  to report like location and client ACLs
 
-- automatically handle prometheus port tunnelling for non-local cloudlets
+- handle prometheus port tunnelling for non-local cloudlets
 
     Check for the KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT
     environment variables and the existence of service account token file at
-    /var/run/secrets/kubernetes.io/serviceaccount/token
+    /var/run/secrets/kubernetes.io/serviceaccount/token.
 
   maybe we can leverage the existing Kilo VPN infrastructure?
 
-- check if application uuid actually exists before handing off to helm
-
 - report known/supported application uuids to Tier 1?
+
+
+Tier 3
+======
+
+- merge Tier 3 python client into codebase
