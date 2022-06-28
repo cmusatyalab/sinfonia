@@ -70,7 +70,8 @@ class DeployView(MethodView):
         results = list(
             islice(
                 filterfalse(
-                    None, chain(zip_longest(request.result() for request in requests))
+                    lambda r: r is None,
+                    chain(*zip_longest(*(request.result() for request in requests))),
                 ),
                 max_results,
             )

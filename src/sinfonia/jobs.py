@@ -24,10 +24,10 @@ def expire_cloudlets():
 
     expiration = pendulum.now().subtract(minutes=5)
 
-    for cloudlet in CLOUDLETS.values():
+    for cloudlet in list(CLOUDLETS.values()):
         if cloudlet.last_update is not None and cloudlet.last_update < expiration:
             logging.info(f"Removing stale {cloudlet}")
-            del CLOUDLETS[cloudlet.uuid]
+            CLOUDLETS.pop(cloudlet.uuid, None)
 
 
 def start_expire_cloudlets_job():
@@ -44,7 +44,8 @@ def start_expire_cloudlets_job():
 
 def expire_deployments():
     cluster = scheduler.app.config["K8S_CLUSTER"]
-    cluster.expire_inactive_deployments()
+    with scheduler.app.app_context():
+        cluster.expire_inactive_deployments()
 
 
 def start_expire_deployments_job():
