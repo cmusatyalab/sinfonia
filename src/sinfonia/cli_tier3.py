@@ -42,9 +42,9 @@ app = typer.Typer()
 def load_application_keys(application_uuid: UUID) -> Dict[str, str]:
     """Return a new public/private for the application
 
-    Reuse a cached copy from ~/.cache/cloudlet-launcher/<application-uuid> if it exists.
+    Reuse a cached copy from ~/.cache/sinfonia/<application-uuid> if it exists.
     """
-    cache_file = xdg_cache_home() / "cloudlet-launcher" / str(application_uuid)
+    cache_file = xdg_cache_home() / "sinfonia" / str(application_uuid)
     if cache_file.exists():
         return yaml.safe_load(cache_file.read_text())
 
@@ -58,18 +58,25 @@ def load_application_keys(application_uuid: UUID) -> Dict[str, str]:
     return keys
 
 
-def deploy_backend(deployment_url: str) -> Sequence[Dict[str, Any]]:
+def deploy_backend(deployment_url: URL) -> Sequence[Dict[str, Any]]:
     """Request a backend (re)deployment from the orchestrator"""
     # fire off deployment request
-    response = requests.post(deployment_url)
+    response = requests.post(str(deployment_url))
     response.raise_for_status()
 
     # load openapi specification to validate the response
     spec_dict = yaml.safe_load(
-        importlib_resources.files("cloudlet_launcher.openapi")
-        .joinpath("cloudlet_deployment.yaml")
+        importlib_resources.files("sinfonia.openapi")
+        .joinpath("sinfonia_tier2.yaml")
         .read_text()
     )
+
+    # not sure how to add format specific validators to openapi-spec-validator
+    # so we'll delete the "format": "wireguard_public_key" items
+    schemas = spec_dict["components"]["schemas"]
+    del schemas["CloudletDeployment"]["properties"]["ApplicationKey"]["format"]
+    del schemas["WireguardConfig"]["properties"]["publicKey"]["format"]
+
     spec = create_spec(spec_dict)
 
     # validate the response
@@ -165,10 +172,10 @@ def main(
 
     try:
         typer.echo("Deploying... ", nl=False)
-        deployments = deploy_backend(str(deployment_url))
+        deployments = deploy_backend(deployment_url)
         typer.echo("done")
     except ConnectionError:
-        typer.echo("failed to connect to cloudlet-orchestrator")
+        typer.echo("failed to connect to sinfonia-tier1/-tier2")
         sys.exit(1)
     except HTTPError as e:
         typer.echo(f'failed to deploy backend: "{e.response.text}"')

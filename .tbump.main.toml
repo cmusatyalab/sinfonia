@@ -31,6 +31,10 @@ src = "charts/sinfonia/Chart.yaml"
 version_template = "v{major}.{minor}.{patch}"
 search = 'appVersion: "{current_version}"'
 
+[[file]]
+src = "src/sinfonia/__init__.py"
+search = '__version__ = "{current_version}"'
+
 [[before_commit]]
 name = "run unit tests"
 cmd = "poetry run pytest"
