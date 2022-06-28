@@ -33,7 +33,7 @@ SUCCESSFUL_DEPLOYMENT = [
 ]
 
 
-def test_app(requests_mock):
+def test_app(requests_mock, mock_generate_keypair):
     # mock the tier2 server
     requests_mock.post(
         requests_mock_ANY,

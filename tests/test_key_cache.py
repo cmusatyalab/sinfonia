@@ -6,7 +6,7 @@ from pathlib import Path
 from sinfonia.cli_tier3 import load_application_keys
 
 
-def test_cached_keys(monkeypatch, tmp_path):
+def test_cached_keys(monkeypatch, mock_generate_keypair, tmp_path):
     cache_dir = Path(tmp_path, "cache").resolve()
     monkeypatch.setenv("XDG_CACHE_HOME", str(cache_dir))
 
@@ -24,7 +24,7 @@ def test_cached_keys(monkeypatch, tmp_path):
     assert (cl_cache_dir / "00000000-0000-0000-0000-000000000000").exists()
 
 
-def test_unique_keys(monkeypatch, tmp_path):
+def test_unique_keys(monkeypatch, mock_generate_keypair, tmp_path):
     cache_dir = Path(tmp_path, "cache").resolve()
     monkeypatch.setenv("XDG_CACHE_HOME", str(cache_dir))
 

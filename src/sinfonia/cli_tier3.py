@@ -22,6 +22,7 @@ import randomname
 import requests
 import typer
 import wgconfig
+import wgconfig.wgexec
 import yaml
 from openapi_core import create_spec
 from openapi_core.contrib.requests import (
@@ -32,7 +33,6 @@ from openapi_core.validation.response.validators import ResponseValidator
 from plumbum import FG, local
 from plumbum.cmd import echo, ip, mkdir, rm, rmdir, sudo, tee
 from requests.exceptions import ConnectionError, HTTPError
-from wgconfig.wgexec import generate_keypair
 from xdg import xdg_cache_home
 from yarl import URL
 
@@ -51,7 +51,7 @@ def load_application_keys(application_uuid: UUID) -> Dict[str, str]:
         return yaml.safe_load(cache_file.read_text())
 
     keys = {}
-    keys["private_key"], keys["public_key"] = generate_keypair()
+    keys["private_key"], keys["public_key"] = wgconfig.wgexec.generate_keypair()
 
     cache_file.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     with cache_file.open("w") as fh:
