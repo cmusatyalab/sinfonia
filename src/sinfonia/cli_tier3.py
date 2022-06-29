@@ -8,7 +8,6 @@
 # SPDX-License-Identifier: MIT
 #
 
-import base64
 import ipaddress
 import os
 import string
@@ -174,11 +173,12 @@ def main(
 ) -> None:
     application_keys = load_application_keys(application_uuid)
 
-    deployment_key = base64.urlsafe_b64encode(
-        base64.b64decode(application_keys["public_key"])
-    ).decode("utf-8")
+    deployment_key = WireguardKey(application_keys["public_key"])
     deployment_url = (
-        URL(tier1_url) / "api/v1/deploy" / str(application_uuid) / deployment_key
+        URL(tier1_url)
+        / "api/v1/deploy"
+        / str(application_uuid)
+        / deployment_key.urlsafe
     )
 
     if debug:
