@@ -36,6 +36,8 @@ from requests.exceptions import ConnectionError, HTTPError
 from xdg import xdg_cache_home
 from yarl import URL
 
+from .wireguard_key import WireguardKey
+
 app = typer.Typer()
 
 wg = local.get("wg", "echo")
@@ -60,6 +62,20 @@ def load_application_keys(application_uuid: UUID) -> Dict[str, str]:
     return keys
 
 
+class WireguardKeyFormatter:
+    """For validating wireguard keys in the server response"""
+
+    def validate(self, value: str) -> bool:
+        try:
+            WireguardKey(value)
+            return True
+        except ValueError:
+            return False
+
+    def unmarshal(self, value):
+        return value
+
+
 def deploy_backend(deployment_url: URL) -> Sequence[Dict[str, Any]]:
     """Request a backend (re)deployment from the orchestrator"""
     # fire off deployment request
@@ -72,20 +88,16 @@ def deploy_backend(deployment_url: URL) -> Sequence[Dict[str, Any]]:
         .joinpath("sinfonia_tier2.yaml")
         .read_text()
     )
-
-    # not sure how to add format specific validators to openapi-spec-validator
-    # so we'll delete the "format": "wireguard_public_key" items
-    schemas = spec_dict["components"]["schemas"]
-    del schemas["CloudletDeployment"]["properties"]["ApplicationKey"]["format"]
-    del schemas["WireguardConfig"]["properties"]["publicKey"]["format"]
-
     spec = create_spec(spec_dict)
+    custom_formatters = {
+        "wireguard_public_key": WireguardKeyFormatter(),
+    }
 
     # validate the response
     openapi_request = RequestsOpenAPIRequest(response.request)
     openapi_response = RequestsOpenAPIResponse(response)
 
-    validator = ResponseValidator(spec)
+    validator = ResponseValidator(spec, custom_formatters=custom_formatters)
     result = validator.validate(openapi_request, openapi_response)
     result.raise_for_errors()
 
