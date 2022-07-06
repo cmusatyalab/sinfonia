@@ -60,13 +60,21 @@ def load_spec(specfile: Path) -> Dict[str, Any]:
     help="File containing known cloudlets",
 )
 @click.option(
+    "--scores",
+    type=str,
+    default="SCORES",
+    help="Location of Sinfonia deployment scores (directory or url)",
+    show_default=True,
+    show_envvar=True,
+)
+@click.option(
     "-p",
     "--port",
     type=int,
     default=5000,
     help="Port to listen for requests",
 )
-def tier1(cloudlets, port):
+def tier1(cloudlets, scores, port):
     """Run Sinfonia Tier 1 API server"""
     # add APIs
     app = connexion.App(__name__, specification_dir="openapi/")
@@ -75,6 +83,7 @@ def tier1(cloudlets, port):
     flask_app.wsgi_app = ProxyFix(flask_app.wsgi_app)
     flask_app.config["EXECUTOR"] = Executor(flask_app)
     flask_app.config["GEOLITE2_READER"] = geolite2.reader()
+    flask_app.config["SCORES"] = DeploymentRepository(scores)
 
     if cloudlets is not None:
         with flask_app.app_context():
