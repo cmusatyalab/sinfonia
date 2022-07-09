@@ -3,6 +3,8 @@
 
 import pytest
 import wgconfig.wgexec
+from flask import Flask
+from geolite2 import geolite2
 
 from sinfonia.deployment_repository import DeploymentRepository
 
@@ -45,3 +47,10 @@ def mock_generate_keypair(monkeypatch):
         return keypairs.pop()
 
     monkeypatch.setattr(wgconfig.wgexec, "generate_keypair", generate_keypair)
+
+
+@pytest.fixture(scope="session")
+def flask_app():
+    app = Flask("test")
+    app.config["GEOLITE2_READER"] = geolite2.reader()
+    return app

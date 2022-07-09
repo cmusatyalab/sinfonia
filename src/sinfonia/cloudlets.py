@@ -19,7 +19,6 @@ from operator import itemgetter
 from typing import Any, List, Sequence, Union
 from uuid import UUID, uuid4
 
-import geopy.distance
 import pendulum
 import requests
 import yaml
@@ -29,6 +28,7 @@ from flask import current_app
 from jsonschema import Draft202012Validator
 from yarl import URL
 
+from .geo_location import GeoLocation, geolocate
 from .wireguard_key import WireguardKey
 
 CLOUDLET_SCHEMA = {
@@ -127,13 +127,6 @@ def getaddrinfo(host, port):
     return addresses
 
 
-def geolocate(reader, address):
-    match = (reader.get(address) or {}).get("location")
-    if match is None:
-        return None
-    return (match["latitude"], match["longitude"])
-
-
 def estimated_rtt(distance_in_km):
     speed_of_light = 299792.458
     return 2 * (distance_in_km / speed_of_light)
@@ -147,7 +140,7 @@ class Cloudlet:
     uuid: UUID
     endpoint: URL
     name: str
-    locations: list[tuple[float, float]]
+    locations: list[GeoLocation]
     local_networks: NetworkList
     accepted_clients: NetworkList
     rejected_clients: NetworkList
@@ -161,7 +154,7 @@ class Cloudlet:
         uuid: UUID,
         endpoint: URL,
         name: str | None = None,
-        locations: list[tuple[float, float]] | None = None,
+        locations: list[GeoLocation] | None = None,
         local_networks: NetworkList | None = None,
         accepted_clients: NetworkList | None = None,
         rejected_clients: NetworkList | None = None,
@@ -179,19 +172,14 @@ class Cloudlet:
             api_version = 1
 
         # we may need to resolve the ip address(es) of the cloudlet
-        if not locations or local_networks is None:
+        if locations is None or local_networks is None:
             local_addresses = getaddrinfo(endpoint.host, endpoint.port)
 
-        # cloudlet location(s)
-        if not locations:
-            geolite2_reader = current_app.config["GEOLITE2_READER"]
-
+        if locations is None:
             # geoip lookup for addresses associated with hostname
             locations = [
                 coordinate
-                for coordinate in (
-                    geolocate(geolite2_reader, str(addr.ip)) for addr in local_addresses
-                )
+                for coordinate in (geolocate(addr.ip) for addr in local_addresses)
                 if coordinate is not None
             ]
 
@@ -215,7 +203,7 @@ class Cloudlet:
             uuid,
             endpoint,
             name,
-            [(lat, lon) for lat, lon in locations],
+            locations,
             [ip_interface(network).network for network in local_networks],
             [ip_interface(network).network for network in accepted_clients],
             [ip_interface(network).network for network in rejected_clients],
@@ -236,17 +224,21 @@ class Cloudlet:
         rejected_clients: NetworkList | None = None,
         resources: dict[str, float] | None = None,
     ) -> Cloudlet:
-        if locations is None:
-            locations = []
 
-        if location is not None:
-            locations.insert(0, location)
+        if locations is not None or location is not None:
+            geolocations = [GeoLocation.from_tuple(coord) for coord in locations or []]
+
+            if location is not None:
+                geolocations.insert(0, GeoLocation.from_tuple(location))
+        else:
+            geolocations = None
 
         return cls.new(
-            uuid4(),
-            URL(endpoint),
+            uuid=uuid4(),
+            endpoint=URL(endpoint),
             name=name,
-            locations=locations,
+            locations=geolocations,
+            local_networks=local_networks,
             accepted_clients=accepted_clients,
             rejected_clients=rejected_clients,
             resources=resources,
@@ -256,7 +248,9 @@ class Cloudlet:
     def new_from_api(cls, request_body: dict) -> Cloudlet:
         uuid = request_body["uuid"]
         endpoint = URL(request_body["endpoint"])
-        locations = request_body.get("locations", list())
+        locations = [
+            GeoLocation.from_tuple(coord) for coord in request_body.get("locations", [])
+        ]
         accepted_clients = request_body.get("accepted_clients")
         rejected_clients = request_body.get("rejected_clients")
         resources = request_body.get("resources")
@@ -313,13 +307,13 @@ class Cloudlet:
 
         return result
 
-    def distance_from(self, location: tuple[float, float]) -> float | None:
+    def distance_from(self, location: GeoLocation) -> float | None:
         """Calculate closest distance to any cloudlet managed by this Tier 2 instance.
         Return distance in kilometers, or None when cloudlet location is unknown.
         """
         closest = None
         for cloudlet_location in self.locations:
-            distance = geopy.distance.distance(location, cloudlet_location).km
+            distance = cloudlet_location - location
             if closest is None or distance < closest:
                 closest = distance
         return closest
@@ -424,11 +418,6 @@ def find(CLOUDLETS, client_ip, location=None):
     cloudlets = list(CLOUDLETS.values())
 
     yield from _filter_by_network(cloudlets, client_ip)
-
-    # avoid location lookup when the remaining list of cloudlets is empty?
-    if location is None and cloudlets:
-        geolite2_reader = current_app.config["GEOLITE2_READER"]
-        location = geolocate(geolite2_reader, client_ip)
 
     if location is not None:
         yield from _filter_by_location(cloudlets, location)

@@ -22,14 +22,13 @@ from uuid import UUID, uuid4
 import pendulum
 import requests
 from attrs import define, field
-from jsonschema.exceptions import ValidationError
 from plumbum.cmd import helm, kubectl
 from plumbum.commands.base import BaseCommand
 from requests.exceptions import RequestException
 from yarl import URL
 
 from .deployment import CLIENT_NETWORK, Deployment
-from .deployment_score import get_deployment_score
+from .deployment_score import DeploymentScore
 from .wireguard_key import WireguardKey
 
 RESOURCE_QUERIES = {
@@ -146,12 +145,9 @@ class Cluster:
             pass
 
         try:
-            score = get_deployment_score(uuid)
-        except ValidationError:
-            logging.exception(f"Failed to validate score {uuid}")
-            return None
-        except RequestException:
-            logging.info(f"Request for unknown score {uuid}")
+            score = DeploymentScore.from_uuid(uuid)
+        except ValueError:
+            logging.exception(f"Failed to retrieve score {uuid}")
             return None
 
         if not create:

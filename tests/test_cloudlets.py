@@ -2,26 +2,22 @@
 # SPDX-License-Identifier: MIT
 
 from io import StringIO
-from ipaddress import IPv4Network
+from ipaddress import IPv4Network, ip_address
 from pathlib import Path
 
 import pytest
-from flask import Flask
-from geolite2 import geolite2
 from jsonschema import ValidationError
 
 from sinfonia import cloudlets
-
-app = Flask("test")
-app.config["GEOLITE2_READER"] = geolite2.reader()
+from sinfonia.geo_location import GeoLocation
 
 
 class TestValidation:
     def load(self, string):
         return cloudlets.load(StringIO(string))
 
-    def test_config_minimal(self):
-        with app.app_context():
+    def test_config_minimal(self, flask_app):
+        with flask_app.app_context():
             cloudlets = self.load("endpoint: http://localhost/api/v1/deploy")
             assert len(cloudlets) == 1
             cloudlet = cloudlets[0]
@@ -34,18 +30,18 @@ class TestValidation:
             cloudlet = self.load("endpoint: http://128.2.0.1/api/v1/deploy")[0]
             assert cloudlet.name == "128.2.0.1"
             # this test may fail when geolite2 is updated
-            assert cloudlet.locations == [(40.4439, -79.9561)]
+            assert cloudlet.locations == [GeoLocation(40.4439, -79.9561)]
             assert cloudlet.local_networks == [IPv4Network("128.2.0.1")]
             assert cloudlet.accepted_clients == [IPv4Network("0.0.0.0/0")]
             assert cloudlet.rejected_clients == []
 
-    def test_config_nourl(self):
-        with app.app_context():
+    def test_config_nourl(self, flask_app):
+        with flask_app.app_context():
             with pytest.raises(ValidationError):
                 self.load("name: no url specified")
 
-    def test_config_location(self):
-        with app.app_context():
+    def test_config_location(self, flask_app):
+        with flask_app.app_context():
             # check some things that should work
             cloudlet = self.load(
                 """\
@@ -53,7 +49,7 @@ endpoint: http://128.2.0.1/api/v1/deploy
 location: [40.4439, -79.9444]
 """
             )[0]
-            assert cloudlet.locations == [(40.4439, -79.9444)]
+            assert cloudlet.locations == [GeoLocation(40.4439, -79.9444)]
 
             cloudlet = self.load(
                 """\
@@ -62,7 +58,7 @@ locations:
   - [40.4439, -79.9444]
 """
             )[0]
-            assert cloudlet.locations == [(40.4439, -79.9444)]
+            assert cloudlet.locations == [GeoLocation(40.4439, -79.9444)]
 
             # and check for things that should fail
             failures = [
@@ -100,16 +96,19 @@ locations:
 
 class TestSearch:
     @pytest.fixture(scope="class")
-    def aws_cloudlets(self, request):
+    def aws_cloudlets(self, request, flask_app):
         datadir = Path(request.fspath.dirname) / "data"
-        with app.app_context():
+        with flask_app.app_context():
             with open(datadir / "aws_regions.yaml") as f:
                 return {cloudlet.uuid: cloudlet for cloudlet in cloudlets.load(f)}
 
-    def test_search_from_cmu(self, aws_cloudlets):
-        with app.app_context():
+    def test_search_from_cmu(self, aws_cloudlets, flask_app):
+        with flask_app.app_context():
+            address = ip_address("128.2.0.1")
+            location = GeoLocation.from_address(address)
             nearest = [
-                cloudlet.name for cloudlet in cloudlets.find(aws_cloudlets, "128.2.0.1")
+                cloudlet.name
+                for cloudlet in cloudlets.find(aws_cloudlets, address, location)
             ]
             assert nearest == [
                 "AWS Northern Virginia",
@@ -136,11 +135,13 @@ class TestSearch:
                 "AWS Jakarta",
             ]
 
-    def test_search_from_stanford(self, aws_cloudlets):
-        with app.app_context():
+    def test_search_from_stanford(self, aws_cloudlets, flask_app):
+        with flask_app.app_context():
+            address = ip_address("171.64.0.1")
+            location = GeoLocation.from_address(address)
             nearest = [
                 cloudlet.name
-                for cloudlet in cloudlets.find(aws_cloudlets, "171.64.0.1")
+                for cloudlet in cloudlets.find(aws_cloudlets, address, location)
             ]
             assert nearest == [
                 "AWS Northern California",
@@ -165,4 +166,37 @@ class TestSearch:
                 "AWS Singapore",
                 "AWS Jakarta",
                 "AWS Cape Town",
+            ]
+
+    def test_search_from_vu(self, aws_cloudlets, flask_app):
+        with flask_app.app_context():
+            address = ip_address("130.37.0.1")
+            location = GeoLocation.from_address(address)
+            nearest = [
+                cloudlet.name
+                for cloudlet in cloudlets.find(aws_cloudlets, address, location)
+            ]
+            assert nearest == [
+                "AWS London",
+                "AWS Frankfurt",
+                "AWS Paris",
+                "AWS Milan",
+                "AWS Ireland",
+                "AWS Stockholm",
+                "AWS Bahrain",
+                "AWS Canada",
+                "AWS Northern Virginia",
+                "AWS Ohio",
+                "AWS Mumbai",
+                "AWS Oregon",
+                "AWS Seoul",
+                "AWS Northern California",
+                "AWS Osaka",
+                "AWS Hong Kong",
+                "AWS Tokyo",
+                "AWS Cape Town",
+                "AWS Sao Paulo",
+                "AWS Singapore",
+                "AWS Jakarta",
+                "AWS Sydney",
             ]

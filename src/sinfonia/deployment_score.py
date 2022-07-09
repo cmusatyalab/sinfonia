@@ -43,6 +43,8 @@ import yaml
 from attrs import define
 from flask import current_app
 from jsonschema import Draft202012Validator
+from jsonschema.exceptions import ValidationError
+from requests.exceptions import RequestException
 from yarl import URL
 
 from .deployment_repository import DeploymentRepository
@@ -82,6 +84,18 @@ class DeploymentScore:
     values: dict
 
     @classmethod
+    def from_uuid(cls, uuid: UUID | str) -> DeploymentScore:
+        repository = current_app.config["SCORES"]
+        if isinstance(uuid, str):
+            uuid = UUID(uuid)
+        try:
+            return cls.from_repo(repository, uuid)
+        except RequestException:
+            raise ValueError(f"Request for unknown score {uuid}")
+        except ValidationError:
+            raise ValueError(f"Failed to validate score {uuid}")
+
+    @classmethod
     def from_repo(cls, repository: DeploymentRepository, uuid: UUID) -> DeploymentScore:
         """Load deployment score from yaml document.
         May raise jsonschema.exceptions.ValidationError.
@@ -107,8 +121,3 @@ class DeploymentScore:
     @property
     def chart_ref(self) -> URL:
         return self.repository.join(self.chart_version + ".tgz")
-
-
-def get_deployment_score(uuid: UUID) -> DeploymentScore:
-    repository = current_app.config["SCORES"]
-    return DeploymentScore.from_repo(repository, uuid)

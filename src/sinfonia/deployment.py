@@ -28,7 +28,7 @@ import yaml
 from attrs import define, field
 from plumbum import TF
 
-from .deployment_score import DeploymentScore, get_deployment_score
+from .deployment_score import DeploymentScore
 from .wireguard_key import WireguardKey
 
 if TYPE_CHECKING:
@@ -98,7 +98,7 @@ class Deployment:
         metadata = k8s_json["metadata"]
 
         uuid = UUID(metadata["labels"]["findcloudlet.org/uuid"])
-        score = get_deployment_score(uuid)
+        score = DeploymentScore.from_uuid(uuid)
 
         return cls(
             cluster=cluster,

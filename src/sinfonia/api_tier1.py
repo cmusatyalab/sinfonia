@@ -9,10 +9,7 @@
 #
 
 import logging
-from ipaddress import ip_address
 from itertools import chain, filterfalse, islice, zip_longest
-from typing import Optional
-from uuid import UUID
 
 from connexion import NoContent
 from connexion.exceptions import ProblemException
@@ -20,7 +17,8 @@ from flask import current_app, request
 from flask.views import MethodView
 
 from . import cloudlets
-from .wireguard_key import WireguardKey
+from .client_info import ClientInfo
+from .deployment_score import DeploymentScore
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -32,47 +30,38 @@ MAX_RESULTS = 3
 
 class DeployView(MethodView):
     def post(self, uuid, application_key, results=1):
-        uuid = UUID(uuid)
-        application_key = WireguardKey(application_key)
-
         # set number of returned results between 1 and MAX_RESULTS
         max_results = max(1, min(results, MAX_RESULTS))
 
-        # extract header parameters and add some extra validation
         try:
-            client_address: Optional[str] = request.headers["X-ClientIP"]
-            assert client_address is not None
-            ip_address(client_address)
-        except (KeyError, AssertionError, ValueError):
-            client_address = request.remote_addr
-
-        client_location = request.headers.get("X-Location", None)
-        if client_location is not None and (
-            float(client_location[0]) < -90.0
-            or float(client_location[0]) > 90.0
-            or float(client_location[1]) < -180.0
-            or float(client_location[1]) > 180.0
-        ):
-            client_location = None
-
-        if client_location is None:
-            geolite2_reader = current_app.config["GEOLITE2_READER"]
-            client_location = cloudlets.geolocate(geolite2_reader, client_address)
+            requested = DeploymentScore.from_uuid(uuid)
+            client_info = ClientInfo.from_request(application_key)
+        except ValueError:
+            raise ProblemException(400, "Bad Request", "Incorrectly formatted request")
 
         CLOUDLETS = current_app.config["CLOUDLETS"]
-        by_nearest = cloudlets.find(CLOUDLETS, client_address, client_location)
+        by_nearest = cloudlets.find(
+            CLOUDLETS, client_info.ipaddress, client_info.location
+        )
+        candidates = islice(by_nearest, max_results)
+
+        # available = current_app.config["CLOUDLETS"].values()
+        # candidates = tier1_best_match(client_info, requested, available, max_results)
 
         # fire off deployment requests
         requests = [
             cloudlet.deploy_async(
-                uuid, application_key, client_address, client_location
+                requested.uuid,
+                client_info.publickey,
+                client_info.ipaddress,
+                client_info.location,
             )
-            for cloudlet in islice(by_nearest, max_results)
+            for cloudlet in candidates
         ]
 
         # gather the results,
         # - interleave results from cloudlets in case any returned more than requested.
-        # - recombine into a single list, drop failed results and limit to max_results.
+        # - recombine into a single list, drop failed results, and limit to max_results.
         results = list(
             islice(
                 filterfalse(
