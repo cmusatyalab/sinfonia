@@ -16,7 +16,7 @@ import socket
 from concurrent.futures import Future
 from ipaddress import IPv4Network, IPv6Network, ip_address, ip_interface
 from operator import itemgetter
-from typing import Any, List, Sequence, Union
+from typing import Any, Iterator, List, Union
 from uuid import UUID, uuid4
 
 import pendulum
@@ -28,8 +28,9 @@ from flask import current_app
 from jsonschema import Draft202012Validator
 from yarl import URL
 
+from .client_info import ClientInfo
+from .deployment_score import DeploymentScore
 from .geo_location import GeoLocation, geolocate
-from .wireguard_key import WireguardKey
 
 CLOUDLET_SCHEMA = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -268,14 +269,14 @@ class Cloudlet:
     def deploy_async(
         self,
         app_uuid: UUID,
-        client_key: WireguardKey,
-        client_address: str | None = None,
-        client_location: Sequence[float] | None = None,
+        client_info: ClientInfo,
     ) -> Future:
         """Initiate backend deployment on this cloudlet."""
 
         def deploy(
-            url: str, client_address: str | None, client_location: str | None
+            url: str,
+            client_address: str | None,
+            client_location: tuple[float, float] | None,
         ) -> dict[str, Any] | None:
             try:
                 headers: dict[str, str] = {}
@@ -290,17 +291,22 @@ class Cloudlet:
                 logger.exception("Exception while forwarding request")
                 return None
 
-        request_url = self.endpoint / str(app_uuid) / client_key.urlsafe
+        request_url = self.endpoint / str(app_uuid) / client_info.publickey.urlsafe
 
         executor = current_app.config["EXECUTOR"]
         return executor.submit(
-            deploy, str(request_url), client_address, client_location
+            deploy,
+            str(request_url),
+            str(client_info.ipaddress) if client_info.ipaddress is not None else None,
+            client_info.location.coordinate
+            if client_info.location is not None
+            else None,
         )
 
-    def deploy(self, app_uuid: UUID, client_key: WireguardKey) -> dict[str, Any]:
+    def deploy(self, app_uuid: UUID, client_info: ClientInfo) -> dict[str, Any]:
         """Request backend deployment on this cloudlet."""
 
-        request = self.deploy_async(app_uuid, client_key)
+        request = self.deploy_async(app_uuid, client_info)
         result = request.result()
         if result is None:
             raise ProblemException(500, "Error", "Error while forwarding request")
@@ -412,14 +418,15 @@ def _random_shuffle(cloudlets):
         yield cloudlet
 
 
-def find(CLOUDLETS, client_ip, location=None):
+def find(
+    client_info: ClientInfo,
+    deployment_score: DeploymentScore,
+    cloudlets: list[Cloudlet],
+) -> Iterator[Cloudlet]:
     """Generator which yields nearby cloudlets."""
-    # create list of cloudlets that we can filter/shuffle/etc.
-    cloudlets = list(CLOUDLETS.values())
+    yield from _filter_by_network(cloudlets, client_info.ipaddress)
 
-    yield from _filter_by_network(cloudlets, client_ip)
-
-    if location is not None:
-        yield from _filter_by_location(cloudlets, location)
+    if client_info.location is not None:
+        yield from _filter_by_location(cloudlets, client_info.location)
 
     yield from _random_shuffle(cloudlets)

@@ -39,23 +39,14 @@ class DeployView(MethodView):
         except ValueError:
             raise ProblemException(400, "Bad Request", "Incorrectly formatted request")
 
-        CLOUDLETS = current_app.config["CLOUDLETS"]
-        by_nearest = cloudlets.find(
-            CLOUDLETS, client_info.ipaddress, client_info.location
+        available = list(current_app.config["CLOUDLETS"].values())
+        candidates = islice(
+            cloudlets.find(client_info, requested, available), max_results
         )
-        candidates = islice(by_nearest, max_results)
-
-        # available = current_app.config["CLOUDLETS"].values()
-        # candidates = tier1_best_match(client_info, requested, available, max_results)
 
         # fire off deployment requests
         requests = [
-            cloudlet.deploy_async(
-                requested.uuid,
-                client_info.publickey,
-                client_info.ipaddress,
-                client_info.location,
-            )
+            cloudlet.deploy_async(requested.uuid, client_info)
             for cloudlet in candidates
         ]
 

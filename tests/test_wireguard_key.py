@@ -11,11 +11,10 @@ def urlsafe_encoding(key):
 
 
 class TestWireguardKey:
-    def test_create(self):
-        public_key = "YpdTsMtb/QCdYKzHlzKkLcLzEbdTK0vP4ILmdcIvnhc="
-        stored_key = WireguardKey(public_key)
-        assert str(stored_key) == public_key
-        assert stored_key.urlsafe == urlsafe_encoding(public_key)
+    def test_create(self, example_wgkey):
+        stored_key = WireguardKey(example_wgkey)
+        assert str(stored_key) == example_wgkey
+        assert stored_key.urlsafe == urlsafe_encoding(example_wgkey)
 
         key_copy = WireguardKey(stored_key)
         assert stored_key == key_copy

@@ -21,7 +21,7 @@ from .wireguard_key import WireguardKey
 
 @define
 class ClientInfo:
-    """ClientInfo encapsulates a lot of what we know of the Tier3 client."""
+    """ClientInfo encapsulates what we know of the Tier3 client."""
 
     publickey: WireguardKey = field(converter=WireguardKey)
     ipaddress: IPv4Address | IPv6Address
@@ -48,3 +48,13 @@ class ClientInfo:
             ipaddress=client_ipaddress,
             location=client_location,
         )
+
+    @classmethod
+    def from_address(
+        cls,
+        application_key: str,
+        address: str | IPv4Address | IPv6Address,
+    ) -> ClientInfo:
+        ipaddress = ip_address(address)
+        location = GeoLocation.from_address(ipaddress)
+        return cls(publickey=application_key, ipaddress=ipaddress, location=location)

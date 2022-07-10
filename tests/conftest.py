@@ -54,3 +54,8 @@ def flask_app():
     app = Flask("test")
     app.config["GEOLITE2_READER"] = geolite2.reader()
     return app
+
+
+@pytest.fixture(scope="session")
+def example_wgkey():
+    return "YpdTsMtb/QCdYKzHlzKkLcLzEbdTK0vP4ILmdcIvnhc="
