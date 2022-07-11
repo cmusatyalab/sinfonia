@@ -36,6 +36,7 @@ randomname = "^0.1.5"
 # tier 1 specific dependencies
 Flask-Executor = "^0.10.0"
 geopy = "^2.2.0"
+importlib-metadata = "^4.12.0"
 maxminddb = "^2.2.0"
 maxminddb-geolite2 = "^2018.703"
 prance = {version = "^0.21.8", extras = ["osv"]}
@@ -68,6 +69,11 @@ tier3 = ["importlib-resources", "openapi-core", "typer", "wgconfig", "xdg"]
 sinfonia-tier1 = "sinfonia.cli:tier1"
 sinfonia-tier2 = "sinfonia.cli:tier2"
 sinfonia-tier3 = "sinfonia.cli_tier3:app"
+
+[tool.poetry.plugins."sinfonia.tier1_matchers"]
+network = "sinfonia.matchers:match_by_network"
+location = "sinfonia.matchers:match_by_location"
+random = "sinfonia.matchers:match_random"
 
 [tool.isort]
 py_version = 37

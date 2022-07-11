@@ -16,9 +16,10 @@ from connexion.exceptions import ProblemException
 from flask import current_app, request
 from flask.views import MethodView
 
-from . import cloudlets
 from .client_info import ClientInfo
+from .cloudlets import Cloudlet
 from .deployment_score import DeploymentScore
+from .matchers import tier1_best_match
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -39,9 +40,10 @@ class DeployView(MethodView):
         except ValueError:
             raise ProblemException(400, "Bad Request", "Incorrectly formatted request")
 
+        matchers = current_app.config["MATCHERS"]
         available = list(current_app.config["CLOUDLETS"].values())
         candidates = islice(
-            cloudlets.find(client_info, requested, available), max_results
+            tier1_best_match(matchers, client_info, requested, available), max_results
         )
 
         # fire off deployment requests
@@ -79,7 +81,7 @@ class CloudletsView(MethodView):
         if not isinstance(body, dict) or "uuid" not in body:
             return "Bad Request, missing UUID", 400
 
-        cloudlet = cloudlets.Cloudlet.new_from_api(body)
+        cloudlet = Cloudlet.new_from_api(body)
         CLOUDLETS = current_app.config["CLOUDLETS"]
         CLOUDLETS[cloudlet.uuid] = cloudlet
         return NoContent, 204

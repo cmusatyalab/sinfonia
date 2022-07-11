@@ -11,12 +11,10 @@
 from __future__ import annotations
 
 import logging
-import random
 import socket
 from concurrent.futures import Future
-from ipaddress import IPv4Network, IPv6Network, ip_address, ip_interface
-from operator import itemgetter
-from typing import Any, Iterator, List, Union
+from ipaddress import IPv4Network, IPv6Network, ip_interface
+from typing import Any, List, Union
 from uuid import UUID, uuid4
 
 import pendulum
@@ -29,7 +27,6 @@ from jsonschema import Draft202012Validator
 from yarl import URL
 
 from .client_info import ClientInfo
-from .deployment_score import DeploymentScore
 from .geo_location import GeoLocation, geolocate
 
 CLOUDLET_SCHEMA = {
@@ -126,11 +123,6 @@ def getaddrinfo(host, port):
     except socket.gaierror:
         pass
     return addresses
-
-
-def estimated_rtt(distance_in_km):
-    speed_of_light = 299792.458
-    return 2 * (distance_in_km / speed_of_light)
 
 
 NetworkList = List[Union[IPv4Network, IPv6Network]]
@@ -351,82 +343,3 @@ def load(stream):
         for cloudlet_desc in yaml.safe_load_all(stream)
         if cloudlet_desc is not None
     ]
-
-
-def _filter_by_network(cloudlets, client_ip):
-    """Yields any cloudlets that claim to be local.
-    Also removes cloudlets that explicitly blacklist the client address
-    """
-    client_address = ip_address(client_ip)
-
-    # Used to jump the loop whenever a cloudlet can be removed from the list
-    class DropCloudlet(Exception):
-        pass
-
-    for cloudlet in cloudlets:
-        try:
-            for network in cloudlet.rejected_clients:
-                if client_address in network:
-                    logger.debug("Cloudlet (%s) would reject client", cloudlet.name)
-                    raise DropCloudlet
-
-            for network in cloudlet.local_networks:
-                if client_address in network:
-                    logger.info("network (%s)", cloudlet.name)
-                    yield cloudlet
-                    # don't need/want to return this one again in this query.
-                    raise DropCloudlet
-
-            for network in cloudlet.accepted_clients:
-                if client_address not in network:
-                    logger.debug("Cloudlet (%s) will not accept client", cloudlet.name)
-                    raise DropCloudlet
-
-        except DropCloudlet:
-            cloudlets.remove(cloudlet)
-
-
-def _filter_by_location(cloudlets, location):
-    """Yields any geographically close cloudlets"""
-    by_distance = []
-
-    for cloudlet in cloudlets:
-        distance = cloudlet.distance_from(location)
-        if distance is not None:
-            by_distance.append((distance, cloudlet))
-
-    if not by_distance:
-        return
-
-    by_distance.sort(key=itemgetter(0))
-    for distance, cloudlet in by_distance:
-        logger.info(
-            "distance (%s) %d km, %.3f minRTT",
-            cloudlet.name,
-            distance,
-            estimated_rtt(distance),
-        )
-        yield cloudlet
-        cloudlets.remove(cloudlet)
-
-
-def _random_shuffle(cloudlets):
-    """Shuffle anything that is left and return in random order"""
-    random.shuffle(cloudlets)
-    for cloudlet in cloudlets:
-        logger.info("random (%s)", cloudlet.name)
-        yield cloudlet
-
-
-def find(
-    client_info: ClientInfo,
-    deployment_score: DeploymentScore,
-    cloudlets: list[Cloudlet],
-) -> Iterator[Cloudlet]:
-    """Generator which yields nearby cloudlets."""
-    yield from _filter_by_network(cloudlets, client_info.ipaddress)
-
-    if client_info.location is not None:
-        yield from _filter_by_location(cloudlets, client_info.location)
-
-    yield from _random_shuffle(cloudlets)

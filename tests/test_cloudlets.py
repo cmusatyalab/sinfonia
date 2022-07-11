@@ -3,13 +3,11 @@
 
 from io import StringIO
 from ipaddress import IPv4Network
-from pathlib import Path
 
 import pytest
 from jsonschema import ValidationError
 
 from sinfonia import cloudlets
-from sinfonia.client_info import ClientInfo
 from sinfonia.geo_location import GeoLocation
 
 
@@ -93,100 +91,3 @@ locations:
             for config in failures:
                 with pytest.raises(ValidationError):
                     self.load(config)
-
-
-class TestSearch:
-    NEARBY = {
-        "128.2.0.1": [
-            "AWS Northern Virginia",
-            "AWS Ohio",
-            "AWS Canada",
-            "AWS Oregon",
-            "AWS Northern California",
-            "AWS Ireland",
-            "AWS London",
-            "AWS Paris",
-            "AWS Frankfurt",
-            "AWS Stockholm",
-            "AWS Milan",
-            "AWS Sao Paulo",
-            "AWS Tokyo",
-            "AWS Osaka",
-            "AWS Seoul",
-            "AWS Bahrain",
-            "AWS Mumbai",
-            "AWS Hong Kong",
-            "AWS Cape Town",
-            "AWS Singapore",
-            "AWS Sydney",
-            "AWS Jakarta",
-        ],
-        "171.64.0.1": [
-            "AWS Northern California",
-            "AWS Oregon",
-            "AWS Ohio",
-            "AWS Canada",
-            "AWS Northern Virginia",
-            "AWS Ireland",
-            "AWS Tokyo",
-            "AWS London",
-            "AWS Stockholm",
-            "AWS Osaka",
-            "AWS Paris",
-            "AWS Seoul",
-            "AWS Frankfurt",
-            "AWS Milan",
-            "AWS Sao Paulo",
-            "AWS Hong Kong",
-            "AWS Sydney",
-            "AWS Bahrain",
-            "AWS Mumbai",
-            "AWS Singapore",
-            "AWS Jakarta",
-            "AWS Cape Town",
-        ],
-        "130.37.0.1": [
-            "AWS London",
-            "AWS Frankfurt",
-            "AWS Paris",
-            "AWS Milan",
-            "AWS Ireland",
-            "AWS Stockholm",
-            "AWS Bahrain",
-            "AWS Canada",
-            "AWS Northern Virginia",
-            "AWS Ohio",
-            "AWS Mumbai",
-            "AWS Oregon",
-            "AWS Seoul",
-            "AWS Northern California",
-            "AWS Osaka",
-            "AWS Hong Kong",
-            "AWS Tokyo",
-            "AWS Cape Town",
-            "AWS Sao Paulo",
-            "AWS Singapore",
-            "AWS Jakarta",
-            "AWS Sydney",
-        ],
-    }
-
-    @pytest.fixture(scope="class")
-    def aws_cloudlets(self, request, flask_app):
-        datadir = Path(request.fspath.dirname) / "data"
-        with flask_app.app_context():
-            with open(datadir / "aws_regions.yaml") as f:
-                return cloudlets.load(f)
-
-    def test_search(self, aws_cloudlets, flask_app, example_wgkey):
-        with flask_app.app_context():
-            for address, nearby in self.NEARBY.items():
-                client_info = ClientInfo.from_address(
-                    example_wgkey,
-                    address,
-                )
-                nearest = [
-                    cloudlet.name
-                    for cloudlet in cloudlets.find(client_info, None, aws_cloudlets[:])
-                ]
-                assert nearest == nearby

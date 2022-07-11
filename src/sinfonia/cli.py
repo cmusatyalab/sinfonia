@@ -19,6 +19,7 @@ import prance
 from connexion.resolver import MethodViewResolver
 from flask_executor import Executor
 from geolite2 import geolite2
+from importlib_metadata import entry_points
 from plumbum.colors import warn
 from plumbum.commands.processes import ProcessExecutionError
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -51,6 +52,18 @@ def load_spec(specfile: Path) -> Dict[str, Any]:
     return parser.specification
 
 
+def list_matchers(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+
+    matchers = [ep.name for ep in entry_points(group="sinfonia.tier1_matchers")]
+
+    click.echo("Available tier1 match functions:")
+    for matcher in sorted(matchers):
+        click.echo(f"\t{matcher}")
+    ctx.exit()
+
+
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.version_option()
 @click.option(
@@ -74,8 +87,35 @@ def load_spec(specfile: Path) -> Dict[str, Any]:
     default=5000,
     help="Port to listen for requests",
 )
-def tier1(cloudlets, scores, port):
+@click.option(
+    "--list-matchers",
+    is_flag=True,
+    callback=list_matchers,
+    expose_value=False,
+    is_eager=True,
+    help="Show available matchers",
+)
+@click.option(
+    "matchers",
+    "-m",
+    "--matcher",
+    type=str,
+    multiple=True,
+    default=["network", "location", "random"],
+    help="Select Tier1 best match functions",
+    show_default=True,
+    show_envvar=True,
+)
+def tier1(cloudlets, scores, port, matchers):
     """Run Sinfonia Tier 1 API server"""
+    try:
+        tier1_matchers = {
+            ep.name: ep for ep in entry_points(group="sinfonia.tier1_matchers")
+        }
+        match_functions = [tier1_matchers[matcher].load() for matcher in matchers]
+    except KeyError as e:
+        raise click.UsageError(f"Unknown matcher {e.args[0]} selected")
+
     # add APIs
     app = connexion.App(__name__, specification_dir="openapi/")
 
@@ -83,6 +123,7 @@ def tier1(cloudlets, scores, port):
     flask_app.wsgi_app = ProxyFix(flask_app.wsgi_app)
     flask_app.config["EXECUTOR"] = Executor(flask_app)
     flask_app.config["GEOLITE2_READER"] = geolite2.reader()
+    flask_app.config["MATCHERS"] = match_functions
     flask_app.config["SCORES"] = DeploymentRepository(scores)
 
     if cloudlets is not None:

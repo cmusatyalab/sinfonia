@@ -7,6 +7,7 @@ from flask import Flask
 from geolite2 import geolite2
 
 from sinfonia.deployment_repository import DeploymentRepository
+from sinfonia.matchers import match_by_location, match_by_network, match_random
 
 GOOD_CONTENT = """\
 chart: example
@@ -53,6 +54,7 @@ def mock_generate_keypair(monkeypatch):
 def flask_app():
     app = Flask("test")
     app.config["GEOLITE2_READER"] = geolite2.reader()
+    app.config["MATCHERS"] = [match_by_network, match_by_location, match_random]
     return app
 
 
