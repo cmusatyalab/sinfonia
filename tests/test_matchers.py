@@ -8,6 +8,7 @@ import pytest
 
 from sinfonia import cloudlets
 from sinfonia.client_info import ClientInfo
+from sinfonia.deployment_score import DeploymentScore
 from sinfonia.matchers import (
     match_by_location,
     match_by_network,
@@ -92,24 +93,6 @@ class TestMatchers:
         ],
     }
 
-    def load(self, string):
-        return cloudlets.load(StringIO(string))
-
-    def test_by_network(self, flask_app, example_wgkey):
-        with flask_app.app_context():
-            all_cloudlets = self.load(
-                "endpoint: http://localhost/api/v1/deploy\n"
-                "local_networks: [128.2.0.0/16]\n"
-            )
-            client_info = ClientInfo.from_address(
-                example_wgkey,
-                "128.2.0.1",
-            )
-            cloudlets = all_cloudlets[:]
-            cloudlet = next(match_by_network(client_info, None, cloudlets))
-            assert cloudlet == all_cloudlets[0]
-            assert len(cloudlets) == 0
-
     @pytest.fixture(scope="class")
     def aws_cloudlets(self, request, flask_app):
         datadir = Path(request.fspath.dirname) / "data"
@@ -117,31 +100,61 @@ class TestMatchers:
             with open(datadir / "aws_regions.yaml") as f:
                 return cloudlets.load(f)
 
-    def test_by_location(self, aws_cloudlets, flask_app, example_wgkey):
+    @pytest.fixture(scope="class")
+    def deployment_score(self, repository, good_uuid):
+        return DeploymentScore.from_repo(repository, good_uuid)
+
+    def load(self, string):
+        return cloudlets.load(StringIO(string))
+
+    def test_by_network(self, deployment_score, flask_app, example_wgkey):
+        with flask_app.app_context():
+            client_info = ClientInfo.from_address(
+                example_wgkey,
+                "128.2.0.1",
+            )
+            all_cloudlets = self.load(
+                "endpoint: http://localhost/api/v1/deploy\n"
+                "local_networks: [128.2.0.0/16]\n"
+            )
+            cloudlets = all_cloudlets[:]
+            cloudlet = next(match_by_network(client_info, deployment_score, cloudlets))
+            assert cloudlet == all_cloudlets[0]
+            assert len(cloudlets) == 0
+
+    def test_by_location(
+        self, aws_cloudlets, deployment_score, flask_app, example_wgkey
+    ):
         with flask_app.app_context():
             for address, nearby in self.NEARBY.items():
-                cloudlets = aws_cloudlets[:]
                 client_info = ClientInfo.from_address(
                     example_wgkey,
                     address,
                 )
+                cloudlets = aws_cloudlets[:]
                 nearest = [
                     cloudlet.name
-                    for cloudlet in match_by_location(client_info, None, cloudlets)
+                    for cloudlet in match_by_location(
+                        client_info, deployment_score, cloudlets
+                    )
                 ]
                 assert nearest == nearby
                 assert len(cloudlets) == 0
 
-    def test_random(self, aws_cloudlets):
-        cloudlets = aws_cloudlets[:]
-        for cloudlet in match_random(None, None, cloudlets):
-            assert cloudlet in aws_cloudlets
-            assert cloudlet not in cloudlets
-        assert len(cloudlets) == 0
-
-    def test_tier1_best_match(self, aws_cloudlets, flask_app, example_wgkey):
+    def test_random(self, aws_cloudlets, deployment_score, flask_app, example_wgkey):
         with flask_app.app_context():
-            matchers = [match_by_network, match_by_location]
+            client_info = ClientInfo.from_address(example_wgkey, "128.2.0.1")
+            cloudlets = aws_cloudlets[:]
+            for cloudlet in match_random(client_info, deployment_score, cloudlets):
+                assert cloudlet in aws_cloudlets
+                assert cloudlet not in cloudlets
+            assert len(cloudlets) == 0
+
+    def test_tier1_best_match(
+        self, aws_cloudlets, deployment_score, flask_app, example_wgkey
+    ):
+        matchers = [match_by_network, match_by_location]
+        with flask_app.app_context():
             for address, nearby in self.NEARBY.items():
                 client_info = ClientInfo.from_address(
                     example_wgkey,
@@ -150,7 +163,7 @@ class TestMatchers:
                 nearest = [
                     cloudlet.name
                     for cloudlet in tier1_best_match(
-                        matchers, client_info, None, aws_cloudlets[:]
+                        matchers, client_info, deployment_score, aws_cloudlets[:]
                     )
                 ]
                 assert nearest == nearby

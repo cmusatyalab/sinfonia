@@ -6,7 +6,7 @@ from yarl import URL
 
 from sinfonia.deployment_repository import DeploymentRepository
 
-from .conftest import BAD_CONTENT, GOOD_CONTENT
+from .conftest import BAD_CONTENT, BAD_UUID, GOOD_CONTENT, GOOD_UUID
 
 
 class TestDeploymentRepository:
@@ -43,8 +43,8 @@ class TestDeploymentRepository:
             repo.join("file:///escaped")
 
     def test_get_local(self, repository):
-        assert repository.get("good.yaml") == GOOD_CONTENT
-        assert repository.get("bad.yaml") == BAD_CONTENT
+        assert repository.get(f"{GOOD_UUID}.yaml") == GOOD_CONTENT
+        assert repository.get(f"{BAD_UUID}.yaml") == BAD_CONTENT
         with pytest.raises(FileNotFoundError):
             repository.get("none.yaml")
 

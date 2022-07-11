@@ -16,7 +16,7 @@ from __future__ import annotations
 import logging
 import random
 from operator import itemgetter
-from typing import Callable, Iterator, List
+from typing import Callable, Iterator, List, Sequence
 
 from .client_info import ClientInfo
 from .cloudlets import Cloudlet
@@ -33,7 +33,7 @@ Tier1MatchFunction = Callable[
 
 
 def tier1_best_match(
-    match_functions: list[Tier1MatchFunction],
+    match_functions: Sequence[Tier1MatchFunction],
     client_info: ClientInfo,
     deployment_score: DeploymentScore,
     cloudlets: list[Cloudlet],

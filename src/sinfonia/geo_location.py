@@ -10,7 +10,7 @@
 
 from __future__ import annotations
 
-from ipaddress import IPv4Address, IPv6Address
+from ipaddress import IPv4Address, IPv6Address, ip_address
 
 import geopy.distance
 from attrs import define, field
@@ -44,13 +44,14 @@ class GeoLocation:
             raise ValueError("X-Location header missing or invalid")
 
     @classmethod
-    def from_address(cls, ipaddress: IPv4Address | IPv6Address) -> GeoLocation:
+    def from_address(cls, ipaddress: str | IPv4Address | IPv6Address) -> GeoLocation:
         """Get geolocation from ip address.
         Raises ValueError when no valid location is found for the IP address.
         """
         geolite2_reader = current_app.config["GEOLITE2_READER"]
         try:
-            match = geolite2_reader.get(str(ipaddress))
+            address = ip_address(ipaddress)
+            match = geolite2_reader.get(str(address))
             assert match is not None
             location = match["location"]
             return cls(location["latitude"], location["longitude"])
@@ -58,7 +59,9 @@ class GeoLocation:
             raise ValueError(f"No valid location found for {ipaddress}")
 
     @classmethod
-    def from_request_or_addr(cls, ipaddress: IPv4Address | IPv6Address) -> GeoLocation:
+    def from_request_or_addr(
+        cls, ipaddress: str | IPv4Address | IPv6Address
+    ) -> GeoLocation:
         try:
             return cls.from_request()
         except ValueError:

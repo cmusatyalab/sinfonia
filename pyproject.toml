@@ -84,7 +84,7 @@ target-version = ["py37"]
 
 [tool.mypy]
 check_untyped_defs = true
-files = "src"
+files = ["src", "tests"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

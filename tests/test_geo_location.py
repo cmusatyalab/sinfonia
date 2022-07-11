@@ -22,7 +22,7 @@ class TestGeoLocation:
         with pytest.raises(ValueError):
             GeoLocation(0.0, 200.0)
         with pytest.raises(ValueError):
-            GeoLocation("here", "there")
+            GeoLocation("here", "there")  # type: ignore
 
     def test_from_tuple(self):
         location = GeoLocation.from_tuple((40.4439, -79.9561))
