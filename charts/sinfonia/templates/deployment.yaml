@@ -39,8 +39,8 @@ spec:
           args: []
           {{- end }}
           env:
-            - name: SINFONIA_SCORES
-              value: {{ include "sinfonia.scores" . }}
+            - name: SINFONIA_RECIPES
+              value: {{ include "sinfonia.recipes" . }}
             {{- if and .Values.sinfoniaTier1Url .Values.sinfoniaTier2Url }}
             - name: SINFONIA_TIER1_URL
               value: {{ .Values.sinfoniaTier1Url }}

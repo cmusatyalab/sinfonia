@@ -34,8 +34,8 @@
   vars:
     sinfonia_tier1_url: "{{ lookup('env', 'SINFONIA_TIER1_URL') }}"
     sinfonia_tier2_url: "http://{{ ansible_nodename }}{{ domainname }}"
-    #sinfonia_scores: "https://storage.cmusatyalab.org/sinfonia-scores/"
-    sinfonia_scores: ""
+    #sinfonia_recipes: "https://storage.cmusatyalab.org/sinfonia-recipes/"
+    sinfonia_recipes: ""
     domainname: .elijah.cs.cmu.edu
 
   #environment:
@@ -67,6 +67,6 @@
           valuesContent: |-
             sinfoniaTier1Url: "{{ sinfonia_tier1_url }}"
             sinfoniaTier2Url: "{{ sinfonia_tier2_url }}"
-            sinfoniaScores: "{{ sinfonia_scores }}"
+            sinfoniaRecipes: "{{ sinfonia_recipes }}"
             ingress:
               className: traefik

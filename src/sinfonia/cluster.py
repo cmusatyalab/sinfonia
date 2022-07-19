@@ -28,7 +28,7 @@ from requests.exceptions import RequestException
 from yarl import URL
 
 from .deployment import CLIENT_NETWORK, Deployment
-from .deployment_score import DeploymentScore
+from .deployment_recipe import DeploymentRecipe
 from .wireguard_key import WireguardKey
 
 RESOURCE_QUERIES = {
@@ -145,17 +145,17 @@ class Cluster:
             pass
 
         try:
-            score = DeploymentScore.from_uuid(uuid)
+            recipe = DeploymentRecipe.from_uuid(uuid)
         except ValueError:
-            logging.exception(f"Failed to retrieve score {uuid}")
+            logging.exception(f"Failed to retrieve recipe {uuid}")
             return None
 
         if not create:
             return default
 
-        return Deployment.from_score(
+        return Deployment.from_recipe(
             cluster=self,
-            score=score,
+            recipe=recipe,
             client_public_key=key,
         )
 

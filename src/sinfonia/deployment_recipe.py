@@ -5,11 +5,11 @@
 #
 # SPDX-License-Identifier: MIT
 #
-"""A deployment score is a YAML document specifying values for a deployment.
+"""A deployment recipe is a YAML document specifying values for a deployment.
 
-The deployment score file is a yaml document which is expected to be named as a
-unique UUID with a .yaml extension and is stored in the `--scores=URL`
-(`SINFONIA_SCORES` envvar) repository of a Sinfonia Tier2 instance.
+The deployment recipe file is a yaml document which is expected to be named as a
+unique UUID with a .yaml extension and is stored in the `--recipes=URL`
+(`SINFONIA_RECIPES` envvar) repository of a Sinfonia Tier2 instance.
 
 There is an optional description field, which is used for documenting the
 purpose and customizations of this specific deployment.
@@ -20,7 +20,7 @@ subdirectory (charts/example), but it could also be a fully qualified URL if
 the chart is stored somewhere else, i.e. https://thirdparty.org/charts/example
 The charts' template values can be overriden with a local values.
 
-Example score.yaml file,
+Example recipe.yaml file,
 
     description: |-
         This is a description for the example deployment.
@@ -49,9 +49,9 @@ from yarl import URL
 
 from .deployment_repository import DeploymentRepository
 
-SINFONIA_SCORE_SCHEMA = {
+SINFONIA_RECIPE_SCHEMA = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "description": "Schema definition for 'deployment score' files",
+    "description": "Schema definition for 'deployment recipe' files",
     "type": "object",
     "properties": {
         "description": {
@@ -76,7 +76,7 @@ SINFONIA_SCORE_SCHEMA = {
 
 
 @define
-class DeploymentScore:
+class DeploymentRecipe:
     repository: DeploymentRepository
     uuid: UUID
     chart: str
@@ -84,34 +84,36 @@ class DeploymentScore:
     values: dict
 
     @classmethod
-    def from_uuid(cls, uuid: UUID | str) -> DeploymentScore:
-        repository = current_app.config["SCORES"]
+    def from_uuid(cls, uuid: UUID | str) -> DeploymentRecipe:
+        repository = current_app.config["RECIPES"]
         if isinstance(uuid, str):
             uuid = UUID(uuid)
         try:
             return cls.from_repo(repository, uuid)
         except RequestException:
-            raise ValueError(f"Request for unknown score {uuid}")
+            raise ValueError(f"Request for unknown recipe {uuid}")
         except ValidationError:
-            raise ValueError(f"Failed to validate score {uuid}")
+            raise ValueError(f"Failed to validate recipe {uuid}")
 
     @classmethod
-    def from_repo(cls, repository: DeploymentRepository, uuid: UUID) -> DeploymentScore:
-        """Load deployment score from yaml document.
+    def from_repo(
+        cls, repository: DeploymentRepository, uuid: UUID
+    ) -> DeploymentRecipe:
+        """Load deployment recipe from yaml document.
         May raise jsonschema.exceptions.ValidationError.
         """
-        score_yaml = repository.get(str(uuid) + ".yaml")
+        recipe_yaml = repository.get(str(uuid) + ".yaml")
 
-        score = yaml.safe_load(score_yaml)
-        validator = Draft202012Validator(SINFONIA_SCORE_SCHEMA)
-        validator.validate(score)
+        recipe = yaml.safe_load(recipe_yaml)
+        validator = Draft202012Validator(SINFONIA_RECIPE_SCHEMA)
+        validator.validate(recipe)
 
         return cls(
             repository=repository,
             uuid=uuid,
-            chart=score["chart"],
-            version=score["version"],
-            values=score.get("values", {}),
+            chart=recipe["chart"],
+            version=recipe["version"],
+            values=recipe.get("values", {}),
         )
 
     @property

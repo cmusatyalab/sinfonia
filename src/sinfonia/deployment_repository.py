@@ -7,12 +7,12 @@
 #
 """Helpers to handle a repository of deployment descriptions.
 
-Deployment descriptions are stored in a repository defined by `--scores=URL`
-(`SINFONIA_SCORES` envvar). This can be either a local directory, or a remote
+Deployment descriptions are stored in a repository defined by `--recipes=URL`
+(`SINFONIA_RECIPES` envvar). This can be either a local directory, or a remote
 reference through a URL. This complicates things because we do still want to
 avoid typicaly local path traversal exploits. The inputs here are the Admin
-defined SCORES, the UUID from the 'untrusted client', and the application
-developer specified chart and version fields in the deployment score file.
+defined RECIPES, the UUID from the 'untrusted client', and the application
+developer specified chart and version fields in the deployment recipe file.
 """
 
 from __future__ import annotations

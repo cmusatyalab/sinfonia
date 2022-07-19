@@ -18,7 +18,7 @@ from flask.views import MethodView
 
 from .client_info import ClientInfo
 from .cloudlets import Cloudlet
-from .deployment_score import DeploymentScore
+from .deployment_recipe import DeploymentRecipe
 from .matchers import tier1_best_match
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
@@ -35,7 +35,7 @@ class DeployView(MethodView):
         max_results = max(1, min(results, MAX_RESULTS))
 
         try:
-            requested = DeploymentScore.from_uuid(uuid)
+            requested = DeploymentRecipe.from_uuid(uuid)
             client_info = ClientInfo.from_request(application_key)
         except ValueError:
             raise ProblemException(400, "Bad Request", "Incorrectly formatted request")

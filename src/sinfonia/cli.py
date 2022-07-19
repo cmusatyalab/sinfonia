@@ -73,10 +73,10 @@ def list_matchers(ctx, param, value):
     help="File containing known cloudlets",
 )
 @click.option(
-    "--scores",
+    "--recipes",
     type=str,
-    default="SCORES",
-    help="Location of Sinfonia deployment scores (directory or url)",
+    default="RECIPES",
+    help="Location of Sinfonia deployment recipes (directory or url)",
     show_default=True,
     show_envvar=True,
 )
@@ -106,7 +106,7 @@ def list_matchers(ctx, param, value):
     show_default=True,
     show_envvar=True,
 )
-def tier1(cloudlets, scores, port, matchers):
+def tier1(cloudlets, recipes, port, matchers):
     """Run Sinfonia Tier 1 API server"""
     try:
         tier1_matchers = {
@@ -124,7 +124,7 @@ def tier1(cloudlets, scores, port, matchers):
     flask_app.config["EXECUTOR"] = Executor(flask_app)
     flask_app.config["GEOLITE2_READER"] = geolite2.reader()
     flask_app.config["MATCHERS"] = match_functions
-    flask_app.config["SCORES"] = DeploymentRepository(scores)
+    flask_app.config["RECIPES"] = DeploymentRepository(recipes)
 
     if cloudlets is not None:
         with flask_app.app_context():
@@ -154,10 +154,10 @@ def tier1(cloudlets, scores, port, matchers):
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.version_option()
 @click.option(
-    "--scores",
+    "--recipes",
     type=str,
-    default="SCORES",
-    help="Location of Sinfonia deployment scores (directory or url)",
+    default="RECIPES",
+    help="Location of Sinfonia deployment recipes (directory or url)",
     show_default=True,
     show_envvar=True,
 )
@@ -186,12 +186,12 @@ def tier1(cloudlets, scores, port, matchers):
     show_envvar=True,
 )
 @click.pass_context
-def tier2(ctx, scores, kubeconfig, kubecontext, prometheus, tier1_url, tier2_url):
+def tier2(ctx, recipes, kubeconfig, kubecontext, prometheus, tier1_url, tier2_url):
     ctx.obj = connexion.App(__name__, specification_dir="openapi/")
 
     flask_app = ctx.obj.app
     flask_app.wsgi_app = ProxyFix(flask_app.wsgi_app)
-    flask_app.config["SCORES"] = DeploymentRepository(scores)
+    flask_app.config["RECIPES"] = DeploymentRepository(recipes)
     flask_app.config["TIER1_URL"] = tier1_url
     flask_app.config["TIER2_URL"] = tier2_url
 

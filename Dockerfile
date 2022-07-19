@@ -49,9 +49,9 @@ RUN apt-get update && apt-get install --no-install-recommends -y curl git \
 
 COPY --from=builder /venv /venv
 
-COPY SCORES /SCORES
-VOLUME ["/SCORES"]
-ENV SINFONIA_SCORES=/SCORES
+COPY RECIPES /RECIPES
+VOLUME ["/RECIPES"]
+ENV SINFONIA_RECIPES=/RECIPES
 
 EXPOSE 5000
 

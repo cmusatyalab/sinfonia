@@ -24,6 +24,6 @@ Files: TODO.md
 Copyright: 2021-2022 Carnegie Mellon University
 License: MIT
 
-Files: SCORES/*.yaml
+Files: RECIPES/*.yaml
 Copyright: 2022 Carnegie Mellon University
 License: 0BSD

@@ -28,7 +28,7 @@ import yaml
 from attrs import define, field
 from plumbum import TF
 
-from .deployment_score import DeploymentScore
+from .deployment_recipe import DeploymentRecipe
 from .wireguard_key import WireguardKey
 
 if TYPE_CHECKING:
@@ -62,7 +62,7 @@ def parse_date(value: str | pendulum.DateTime) -> pendulum.DateTime:
 @define
 class Deployment:
     cluster: Cluster = field()
-    score: DeploymentScore = field()
+    recipe: DeploymentRecipe = field()
     client_public_key: WireguardKey = field(converter=WireguardKey)
     client_ip: IPv4Address | IPv6Address = field(
         converter=ip_address, validator=check_in_network(CLIENT_NETWORK)
@@ -79,16 +79,16 @@ class Deployment:
         return pendulum.now().start_of("second")
 
     @classmethod
-    def from_score(
+    def from_recipe(
         cls,
         cluster: Cluster,
-        score: DeploymentScore,
+        recipe: DeploymentRecipe,
         client_public_key: WireguardKey,
     ) -> Deployment:
         client_ip = cluster.get_unique_client_address()
         return cls(
             cluster=cluster,
-            score=score,
+            recipe=recipe,
             client_public_key=client_public_key,
             client_ip=client_ip,
         )
@@ -98,12 +98,12 @@ class Deployment:
         metadata = k8s_json["metadata"]
 
         uuid = UUID(metadata["labels"]["findcloudlet.org/uuid"])
-        score = DeploymentScore.from_uuid(uuid)
+        recipe = DeploymentRecipe.from_uuid(uuid)
 
         return cls(
             cluster=cluster,
             name=metadata["name"],
-            score=score,
+            recipe=recipe,
             client_public_key=metadata["labels"]["findcloudlet.org/key"],
             client_ip=metadata["labels"]["findcloudlet.org/client"],
             created=metadata["annotations"]["findcloudlet.org/created"],
@@ -124,7 +124,7 @@ metadata:
   name: "{self.name}"
   labels:
     findcloudlet.org: deployment
-    findcloudlet.org/uuid: "{self.score.uuid}"
+    findcloudlet.org/uuid: "{self.recipe.uuid}"
     findcloudlet.org/key: "{self.client_public_key.urlsafe}"
     findcloudlet.org/client: "{self.client_ip}"
   annotations:
@@ -138,7 +138,7 @@ spec:
             )()
             # check if we are the only deployment?
             # this is probably not how to do it...
-            deployment = self.cluster.get(self.score.uuid, str(self.client_public_key))
+            deployment = self.cluster.get(self.recipe.uuid, str(self.client_public_key))
             if deployment is None or deployment == self:
                 break
 
@@ -162,7 +162,7 @@ spec:
 
     def helm_install(self) -> None:
         with NamedTemporaryFile(delete=False) as f:
-            f.write(yaml.dump(self.score.values).encode("utf-8"))
+            f.write(yaml.dump(self.recipe.values).encode("utf-8"))
             f.flush()
 
             self.cluster.helm(
@@ -174,14 +174,14 @@ spec:
                 f.name,
                 "--replace",
                 self.name,
-                self.score.chart_ref,
+                self.recipe.chart_ref,
             )
 
     def asdict(self) -> dict[str, Any]:
         status = "Deployed" if self.is_deployed() else "Expired"
         return {
             "DeploymentName": self.name,
-            "UUID": str(self.score.uuid),
+            "UUID": str(self.recipe.uuid),
             "ApplicationKey": str(self.client_public_key),
             "Status": status,
             "Created": str(self.created),

@@ -20,7 +20,7 @@ from typing import Callable, Iterator, List, Sequence
 
 from .client_info import ClientInfo
 from .cloudlets import Cloudlet
-from .deployment_score import DeploymentScore
+from .deployment_recipe import DeploymentRecipe
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -28,19 +28,19 @@ logger = logging.getLogger(__name__)
 
 # Type definition for a Sinfonia Tier1 match function
 Tier1MatchFunction = Callable[
-    [ClientInfo, DeploymentScore, List[Cloudlet]], Iterator[Cloudlet]
+    [ClientInfo, DeploymentRecipe, List[Cloudlet]], Iterator[Cloudlet]
 ]
 
 
 def tier1_best_match(
     match_functions: Sequence[Tier1MatchFunction],
     client_info: ClientInfo,
-    deployment_score: DeploymentScore,
+    deployment_recipe: DeploymentRecipe,
     cloudlets: list[Cloudlet],
 ) -> Iterator[Cloudlet]:
     """Generator which yields cloudlets based on selected matchers."""
     for matcher in match_functions:
-        yield from matcher(client_info, deployment_score, cloudlets)
+        yield from matcher(client_info, deployment_recipe, cloudlets)
 
 
 # ------------------ Collection of Match functions follows --------------
@@ -48,7 +48,7 @@ def tier1_best_match(
 
 def match_by_network(
     client_info: ClientInfo,
-    _deployment_score: DeploymentScore,
+    _deployment_recipe: DeploymentRecipe,
     cloudlets: list[Cloudlet],
 ) -> Iterator[Cloudlet]:
     """Yields any cloudlets that claim to be local.
@@ -90,7 +90,7 @@ def _estimated_rtt(distance_in_km):
 
 def match_by_location(
     client_info: ClientInfo,
-    _deployment_score: DeploymentScore,
+    _deployment_recipe: DeploymentRecipe,
     cloudlets: list[Cloudlet],
 ) -> Iterator[Cloudlet]:
     """Yields any geographically close cloudlets"""
@@ -121,7 +121,7 @@ def match_by_location(
 
 def match_random(
     _client_info: ClientInfo,
-    _deployment_score: DeploymentScore,
+    _deployment_recipe: DeploymentRecipe,
     cloudlets: list[Cloudlet],
 ) -> Iterator[Cloudlet]:
     """Shuffle anything that is left and return in randomized order"""
