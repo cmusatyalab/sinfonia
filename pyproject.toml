@@ -32,6 +32,7 @@ requests = "^2.26.0"
 # tier 2,3 common dependencies
 plumbum = "^1.7.2"
 randomname = "^0.1.5"
+zeroconf = "^0.38.7"
 
 # tier 1 specific dependencies
 Flask-Executor = "^0.10.0"

@@ -34,6 +34,7 @@ from .jobs import (
     start_expire_deployments_job,
     start_reporting_job,
 )
+from .zeroconf import ZeroconfMDNS
 
 CONTEXT_SETTINGS = {
     "help_option_names": ["-h", "--help"],
@@ -86,6 +87,8 @@ def list_matchers(ctx, param, value):
     type=int,
     default=5000,
     help="Port to listen for requests",
+    show_default=True,
+    show_envvar=True,
 )
 @click.option(
     "--list-matchers",
@@ -212,9 +215,17 @@ def tier2(ctx, recipes, kubeconfig, kubecontext, prometheus, tier1_url, tier2_ur
     type=int,
     default=5000,
     help="Port to listen for requests",
+    show_default=True,
+    show_envvar=True,
+)
+@click.option(
+    "enable_zeroconf",
+    "--zeroconf/--no-zeroconf",
+    default=False,
+    help="Announce cloudlet on local network(s) with zeroconf mdns",
 )
 @click.pass_obj
-def serve(app, port):
+def serve(app, port, enable_zeroconf):
     """Run Sinfonia Tier 2 API server"""
     # add APIs
     app.add_api(
@@ -238,7 +249,16 @@ def serve(app, port):
         logging.info(f"Reporting cloudlet status to {tier1_url}")
         start_reporting_job()
 
-    app.run(port=port)
+    zeroconf = ZeroconfMDNS()
+    if enable_zeroconf:
+        zeroconf.announce(port)
+
+    try:
+        app.run(port=port)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        zeroconf.withdraw()
 
 
 @tier2.command()

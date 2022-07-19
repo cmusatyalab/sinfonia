@@ -34,6 +34,7 @@ from plumbum.cmd import echo, ip, mkdir, rm, rmdir, sudo, tee
 from requests.exceptions import ConnectionError, HTTPError
 from xdg import xdg_cache_home
 from yarl import URL
+from zeroconf import Zeroconf
 
 from .wireguard_key import WireguardKey
 
@@ -161,6 +162,7 @@ def network_namespace(namespace, tunnel_config):
 
 config_option = typer.Option(False, help="Only create wireguard config")
 debug_option = typer.Option(False, help="Print logs for debugging")
+zeroconf_option = typer.Option(False, help="Try to discover local Tier2 with MDNS")
 
 
 @app.command()
@@ -170,8 +172,18 @@ def main(
     application: List[str],
     config_only: bool = config_option,
     debug: bool = debug_option,
+    zeroconf: bool = zeroconf_option,
 ) -> None:
     application_keys = load_application_keys(application_uuid)
+
+    if zeroconf:
+        zc = Zeroconf()
+        info = zc.get_service_info(
+            "_sinfonia._tcp.local.", "cloudlet._sinfonia._tcp.local."
+        )
+        if info is not None:
+            addresses = info.parsed_addresses()
+            tier1_url = f"http://{addresses[0]}:{info.port}"
 
     deployment_key = WireguardKey(application_keys["public_key"])
     deployment_url = (
