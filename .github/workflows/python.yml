@@ -52,7 +52,7 @@ jobs:
           key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashfiles('poetry.lock') }}
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root -extras tier3
+        run: poetry install --no-interaction --no-root --extras tier3
       - name: Install project
         run: poetry install --no-interaction --extras tier3
       - name: Run tests
