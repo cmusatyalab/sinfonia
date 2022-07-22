@@ -56,4 +56,3 @@ ENV SINFONIA_RECIPES=/RECIPES
 EXPOSE 5000
 
 ENTRYPOINT ["/venv/bin/sinfonia-tier2"]
-CMD ["serve"]

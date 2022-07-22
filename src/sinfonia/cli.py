@@ -14,7 +14,6 @@ from typing import Any, Dict
 
 import click
 import connexion
-import pendulum
 import prance
 from connexion.resolver import MethodViewResolver
 from flask_executor import Executor
@@ -71,7 +70,7 @@ def list_matchers(ctx, param, value):
     "-c",
     "--cloudlets",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    help="File containing known cloudlets",
+    help="File containing known Tier2 cloudlets",
 )
 @click.option(
     "--recipes",
@@ -111,6 +110,7 @@ def list_matchers(ctx, param, value):
 )
 def tier1(cloudlets, recipes, port, matchers):
     """Run Sinfonia Tier 1 API server"""
+    # load pluggable functions to select Tier2 cloudlets
     try:
         tier1_matchers = {
             ep.name: ep for ep in entry_points(group="sinfonia.tier1_matchers")
@@ -119,7 +119,6 @@ def tier1(cloudlets, recipes, port, matchers):
     except KeyError as e:
         raise click.UsageError(f"Unknown matcher {e.args[0]} selected")
 
-    # add APIs
     app = connexion.App(__name__, specification_dir="openapi/")
 
     flask_app = app.app
@@ -137,10 +136,12 @@ def tier1(cloudlets, recipes, port, matchers):
         CLOUDLETS = []
     flask_app.config["CLOUDLETS"] = {cloudlet.uuid: cloudlet for cloudlet in CLOUDLETS}
 
+    # start background job to expire Tier2 cloudlets that are no longer reporting
     scheduler.init_app(flask_app)
     scheduler.start()
     start_expire_cloudlets_job()
 
+    # add APIs
     app.add_api(
         load_spec(app.specification_dir / "sinfonia_tier1.yaml"),
         resolver=MethodViewResolver("sinfonia.api_tier1"),
@@ -154,7 +155,7 @@ def tier1(cloudlets, recipes, port, matchers):
     app.run(port=port)
 
 
-@click.group(context_settings=CONTEXT_SETTINGS)
+@click.command(context_settings=CONTEXT_SETTINGS)
 @click.version_option()
 @click.option(
     "--recipes",
@@ -191,27 +192,6 @@ def tier1(cloudlets, recipes, port, matchers):
     help="Base URL of this Tier 2 instance",
     show_envvar=True,
 )
-@click.pass_context
-def tier2(ctx, recipes, kubeconfig, kubecontext, prometheus, tier1_urls, tier2_url):
-    ctx.obj = connexion.App(__name__, specification_dir="openapi/")
-
-    flask_app = ctx.obj.app
-    flask_app.wsgi_app = ProxyFix(flask_app.wsgi_app)
-    flask_app.config["RECIPES"] = DeploymentRepository(recipes)
-    flask_app.config["TIER1_URLS"] = tier1_urls
-    flask_app.config["TIER2_URL"] = tier2_url
-
-    try:
-        cluster = Cluster.connect(kubeconfig or "", kubecontext or "")
-        if prometheus is not None:
-            cluster.prometheus_url = URL(prometheus) / "api" / "v1" / "query"
-
-        flask_app.config["K8S_CLUSTER"] = cluster
-    except (ProcessExecutionError, ValueError):
-        logging.warn(warn | "Failed to connect to cloudlet kubernetes instance")
-
-
-@tier2.command()
 @click.option(
     "-p",
     "--port",
@@ -227,9 +207,47 @@ def tier2(ctx, recipes, kubeconfig, kubecontext, prometheus, tier1_urls, tier2_u
     default=False,
     help="Announce cloudlet on local network(s) with zeroconf mdns",
 )
-@click.pass_obj
-def serve(app, port, enable_zeroconf):
+def tier2(
+    recipes,
+    kubeconfig,
+    kubecontext,
+    prometheus,
+    tier1_urls,
+    tier2_url,
+    port,
+    enable_zeroconf,
+):
     """Run Sinfonia Tier 2 API server"""
+
+    app = connexion.App(__name__, specification_dir="openapi/")
+
+    flask_app = app.app
+    flask_app.wsgi_app = ProxyFix(flask_app.wsgi_app)
+    flask_app.config["RECIPES"] = DeploymentRepository(recipes)
+    flask_app.config["TIER1_URLS"] = tier1_urls
+    flask_app.config["TIER2_URL"] = tier2_url
+
+    # connect to local kubernetes cluster
+    try:
+        cluster = Cluster.connect(kubeconfig or "", kubecontext or "")
+        if prometheus is not None:
+            cluster.prometheus_url = URL(prometheus) / "api" / "v1" / "query"
+
+        flask_app.config["K8S_CLUSTER"] = cluster
+    except (ProcessExecutionError, ValueError):
+        logging.warn(warn | "Failed to connect to cloudlet kubernetes instance")
+
+    # start background jobs to cleanup expired/unused deployments and report
+    # availability and metrics to Tier1 instances
+    scheduler.init_app(app.app)
+    scheduler.start()
+
+    start_expire_deployments_job()
+
+    if len(tier1_urls) != 0 and tier2_url is not None:
+        logging.info("Reporting cloudlet status to Tier1 endpoints")
+        start_reporting_job()
+
     # add APIs
     app.add_api(
         load_spec(app.specification_dir / "sinfonia_tier2.yaml"),
@@ -241,17 +259,7 @@ def serve(app, port, enable_zeroconf):
     def index():
         return ""
 
-    scheduler.init_app(app.app)
-    scheduler.start()
-
-    start_expire_deployments_job()
-
-    tier1_urls = app.app.config["TIER1_URLS"]
-    tier2_url = app.app.config["TIER2_URL"]
-    if len(tier1_urls) != 0 and tier2_url is not None:
-        logging.info("Reporting cloudlet status to Tier1 endpoints")
-        start_reporting_job()
-
+    # run application, optionally announcing availability with MDNS
     zeroconf = ZeroconfMDNS()
     if enable_zeroconf:
         zeroconf.announce(port)
@@ -262,38 +270,3 @@ def serve(app, port, enable_zeroconf):
         pass
     finally:
         zeroconf.withdraw()
-
-
-@tier2.command()
-@click.option(
-    "-v/-q",
-    "--verbose/--quiet",
-    default=True,
-    help="Log message verbosity",
-)
-@click.option(
-    "--redeploy",
-    default=False,
-    help="Redeploy non-expired deployments",
-)
-@click.pass_obj
-def sync(app, verbose, redeploy):
-    """Expire and delete stale deployments."""
-    cluster = app.app.config["K8S_CLUSTER"]
-    cutoff = pendulum.now().subtract(minutes=5)
-
-    with app.app.app_context():
-        active_peers = cluster.get_active_peers(cutoff)
-
-        for deployment in cluster.deployments():
-            if (
-                deployment.created < cutoff
-                and deployment.client_public_key not in active_peers
-            ):
-                if verbose:
-                    click.echo(f"Expiring {deployment.name}")
-                deployment.expire()
-            elif redeploy:
-                if verbose:
-                    click.echo(f"Redeploying {deployment.name}")
-                deployment.helm_install()
