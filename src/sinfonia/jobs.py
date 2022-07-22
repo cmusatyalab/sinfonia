@@ -60,9 +60,9 @@ def start_expire_deployments_job():
     )
 
 
-def report_to_tier1():
+def report_to_tier1_endpoints():
     config = scheduler.app.config
-    tier1_endpoint = URL(config["TIER1_URL"]) / "api/v1/cloudlets/"
+
     tier2_endpoint = URL(config["TIER2_URL"]) / "api/v1/deploy"
 
     cluster = scheduler.app.config["K8S_CLUSTER"]
@@ -70,22 +70,24 @@ def report_to_tier1():
 
     logging.info("Got %s", str(resources))
 
-    try:
-        requests.post(
-            str(tier1_endpoint),
-            json={
-                "uuid": str(cluster.uuid),
-                "endpoint": str(tier2_endpoint),
-                "resources": resources,
-            },
-        )
-    except RequestException:
-        logging.warn(f"Failed to report to {tier1_endpoint}")
+    for tier1_url in config["TIER1_URLS"]:
+        tier1_endpoint = URL(tier1_url) / "api/v1/cloudlets/"
+        try:
+            requests.post(
+                str(tier1_endpoint),
+                json={
+                    "uuid": str(cluster.uuid),
+                    "endpoint": str(tier2_endpoint),
+                    "resources": resources,
+                },
+            )
+        except RequestException:
+            logging.warn(f"Failed to report to {tier1_endpoint}")
 
 
 def start_reporting_job():
     scheduler.add_job(
-        func=report_to_tier1,
+        func=report_to_tier1_endpoints,
         trigger="interval",
         seconds=15,
         max_instances=1,

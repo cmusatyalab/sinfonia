@@ -6,9 +6,9 @@
 #
 # run as: ansible-playbook deploy.yml -i $host,
 #
-# Optionally set the SINFONIA_TIER1_URL environment variable if you
+# Optionally set the SINFONIA_TIER1_URLS environment variable if you
 # want to register with a sinfonia-tier1 instance.
-#  i.e. SINFONIA_TIER1_URL=https://cloudlet.mydomain.org
+#  i.e. SINFONIA_TIER1_URLS=https://cloudlet.mydomain.org
 ---
 - hosts: localhost
   become: false
@@ -32,7 +32,7 @@
   become: true
 
   vars:
-    sinfonia_tier1_url: "{{ lookup('env', 'SINFONIA_TIER1_URL') }}"
+    sinfonia_tier1_url: "{{ lookup('env', 'SINFONIA_TIER1_URLS') }}"
     sinfonia_tier2_url: "http://{{ ansible_nodename }}{{ domainname }}"
     #sinfonia_recipes: "https://storage.cmusatyalab.org/sinfonia-recipes/"
     sinfonia_recipes: ""

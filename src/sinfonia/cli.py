@@ -177,10 +177,13 @@ def tier1(cloudlets, recipes, port, matchers):
     help="Prometheus endpoint",
 )
 @click.option(
+    "tier1_urls",
     "--tier1-url",
     type=str,
-    help="Base URL of Tier 1 instance to report to",
+    help="Base URL of Tier 1 instance to report to (may be repeated)",
     show_envvar=True,
+    multiple=True,
+    default=[],
 )
 @click.option(
     "--tier2-url",
@@ -189,13 +192,13 @@ def tier1(cloudlets, recipes, port, matchers):
     show_envvar=True,
 )
 @click.pass_context
-def tier2(ctx, recipes, kubeconfig, kubecontext, prometheus, tier1_url, tier2_url):
+def tier2(ctx, recipes, kubeconfig, kubecontext, prometheus, tier1_urls, tier2_url):
     ctx.obj = connexion.App(__name__, specification_dir="openapi/")
 
     flask_app = ctx.obj.app
     flask_app.wsgi_app = ProxyFix(flask_app.wsgi_app)
     flask_app.config["RECIPES"] = DeploymentRepository(recipes)
-    flask_app.config["TIER1_URL"] = tier1_url
+    flask_app.config["TIER1_URLS"] = tier1_urls
     flask_app.config["TIER2_URL"] = tier2_url
 
     try:
@@ -243,10 +246,10 @@ def serve(app, port, enable_zeroconf):
 
     start_expire_deployments_job()
 
-    tier1_url = app.app.config["TIER1_URL"]
+    tier1_urls = app.app.config["TIER1_URLS"]
     tier2_url = app.app.config["TIER2_URL"]
-    if tier1_url is not None and tier2_url is not None:
-        logging.info(f"Reporting cloudlet status to {tier1_url}")
+    if len(tier1_urls) != 0 and tier2_url is not None:
+        logging.info("Reporting cloudlet status to Tier1 endpoints")
         start_reporting_job()
 
     zeroconf = ZeroconfMDNS()
