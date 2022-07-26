@@ -29,6 +29,22 @@ logger = logging.getLogger(__name__)
 MAX_RESULTS = 3
 
 
+class CloudletsView(MethodView):
+    def post(self):
+        body = request.json
+        if not isinstance(body, dict) or "uuid" not in body:
+            return "Bad Request, missing UUID", 400
+
+        cloudlet = Cloudlet.new_from_api(body)
+        CLOUDLETS = current_app.config["CLOUDLETS"]
+        CLOUDLETS[cloudlet.uuid] = cloudlet
+        return NoContent, 204
+
+    def search(self):
+        CLOUDLETS = current_app.config["CLOUDLETS"]
+        return [cloudlet.summary() for cloudlet in CLOUDLETS.values()]
+
+
 class DeployView(MethodView):
     def post(self, uuid, application_key, results=1):
         # set number of returned results between 1 and MAX_RESULTS
@@ -75,17 +91,14 @@ class DeployView(MethodView):
         raise ProblemException(500, "Error", "Not implemented")
 
 
-class CloudletsView(MethodView):
-    def post(self):
-        body = request.json
-        if not isinstance(body, dict) or "uuid" not in body:
-            return "Bad Request, missing UUID", 400
+class RecipeView(MethodView):
+    def get(self, uuid):
+        try:
+            recipe = DeploymentRecipe.from_uuid(uuid)
+        except ValueError:
+            raise ProblemException(404, "Not Found", "Deployment recipe not found")
 
-        cloudlet = Cloudlet.new_from_api(body)
-        CLOUDLETS = current_app.config["CLOUDLETS"]
-        CLOUDLETS[cloudlet.uuid] = cloudlet
-        return NoContent, 204
+        if recipe.restricted:
+            raise ProblemException(403, "Not Found", "Deployment recipe not accessible")
 
-    def search(self):
-        CLOUDLETS = current_app.config["CLOUDLETS"]
-        return [cloudlet.summary() for cloudlet in CLOUDLETS.values()]
+        return recipe.asdict()

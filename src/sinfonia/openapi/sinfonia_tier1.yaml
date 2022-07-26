@@ -49,6 +49,29 @@ paths:
                 items:
                   '$ref': '#/components/schemas/CloudletInfo'
 
+  '/recipe/{uuid}/':
+    get:
+      summary: retrieve Deployment recipe
+      responses:
+        "200":
+          description: "returning Deployment recipe"
+          content:
+            "application/json":
+              schema:
+                '$ref': '#/components/schemas/DeploymentRecipe'
+        "403":
+            description: "Deployment recipe not accessible"
+        "404":
+            description: "Deployment recipe not found"
+    parameters:
+      - name: uuid
+        description: uuid of the desired application backend
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
   '/deploy/{uuid}/{application_key}':
     "$ref": "sinfonia_tier2.yaml#/paths/~1deploy~1{uuid}~1{application_key}"
 
@@ -56,3 +79,17 @@ components:
   schemas:
     CloudletInfo:
       "$ref": "sinfonia_tier2.yaml#/components/schemas/CloudletInfo"
+    DeploymentRecipe:
+      type: object
+      required:
+        - chart
+        - version
+      properties:
+        description:
+          type: string
+        chart:
+          type: string
+        version:
+          type: string
+        values:
+          type: object

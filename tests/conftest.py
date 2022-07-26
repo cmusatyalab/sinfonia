@@ -15,10 +15,16 @@ GOOD_UUID = "00000000-0000-0000-0000-000000000000"
 GOOD_CONTENT = """\
 chart: example
 version: 0.1.0
+restricted: false
 """
 BAD_UUID = "00000000-0000-0000-0000-000000000001"
 BAD_CONTENT = """\
 chart: example
+"""
+RESTRICTED_UUID = "00000000-0000-0000-0000-000000000002"
+RESTRICTED_CONTENT = """\
+chart: private
+version: 0.1.0
 """
 
 
@@ -27,6 +33,7 @@ def repository(tmp_path_factory):
     repo = tmp_path_factory.mktemp("repository")
     (repo / GOOD_UUID).with_suffix(".yaml").write_text(GOOD_CONTENT)
     (repo / BAD_UUID).with_suffix(".yaml").write_text(BAD_CONTENT)
+    (repo / RESTRICTED_UUID).with_suffix(".yaml").write_text(RESTRICTED_CONTENT)
     return DeploymentRepository(repo)
 
 
@@ -38,6 +45,11 @@ def good_uuid():
 @pytest.fixture(scope="session")
 def bad_uuid():
     return UUID(BAD_UUID)
+
+
+@pytest.fixture(scope="session")
+def restricted_uuid():
+    return UUID(RESTRICTED_UUID)
 
 
 @pytest.fixture

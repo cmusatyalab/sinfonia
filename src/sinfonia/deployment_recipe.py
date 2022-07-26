@@ -33,10 +33,12 @@ Example recipe.yaml file,
     version: 0.1.0
     values:
         fullnameOverride: example
+    restricted: false
 """
 
 from __future__ import annotations
 
+from typing import Any
 from uuid import UUID
 
 import yaml
@@ -55,7 +57,7 @@ SINFONIA_RECIPE_SCHEMA = {
     "type": "object",
     "properties": {
         "description": {
-            "description": "Description for this deployment",
+            "description": "Description for this deployment recipe",
             "type": "string",
         },
         "chart": {
@@ -70,6 +72,10 @@ SINFONIA_RECIPE_SCHEMA = {
             "description": "Overrides for chart values",
             "type": "object",
         },
+        "restricted": {
+            "description": "Try to keep recipe private (default: true)",
+            "type": "boolean",
+        },
     },
     "required": ["chart", "version"],
 }
@@ -79,9 +85,11 @@ SINFONIA_RECIPE_SCHEMA = {
 class DeploymentRecipe:
     repository: DeploymentRepository
     uuid: UUID
+    description: str | None
     chart: str
     version: str
     values: dict
+    restricted: bool
 
     @classmethod
     def from_uuid(cls, uuid: UUID | str) -> DeploymentRecipe:
@@ -114,6 +122,8 @@ class DeploymentRecipe:
             chart=recipe["chart"],
             version=recipe["version"],
             values=recipe.get("values", {}),
+            description=recipe.get("description"),
+            restricted=recipe.get("restricted", True),
         )
 
     @property
@@ -123,3 +133,15 @@ class DeploymentRecipe:
     @property
     def chart_ref(self) -> URL:
         return self.repository.join(self.chart_version + ".tgz")
+
+    def asdict(self) -> dict[str, Any]:
+        assert not self.restricted
+        recipe: dict[str, Any] = {
+            "chart": self.chart,
+            "version": self.version,
+        }
+        if self.description is not None:
+            recipe["description"] = self.description
+        if self.values:
+            recipe["values"] = self.values
+        return recipe

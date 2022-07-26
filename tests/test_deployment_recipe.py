@@ -15,3 +15,11 @@ class TestDeploymentDescription:
 
         with pytest.raises(ValidationError):
             DeploymentRecipe.from_repo(repository, bad_uuid)
+
+    def test_asdict(self, repository, good_uuid, restricted_uuid):
+        recipe = DeploymentRecipe.from_repo(repository, good_uuid)
+        assert recipe.asdict() == dict(chart="example", version="0.1.0")
+
+        recipe = DeploymentRecipe.from_repo(repository, restricted_uuid)
+        with pytest.raises(AssertionError):
+            recipe.asdict()

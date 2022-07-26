@@ -8,3 +8,4 @@ values:
   resources:
     limits:
       nvidia.com/gpu: 1
+restricted: false
