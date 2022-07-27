@@ -7,9 +7,10 @@
 #
 """A deployment recipe is a YAML document specifying values for a deployment.
 
-The deployment recipe file is a yaml document which is expected to be named as a
-unique UUID with a .yaml extension and is stored in the `--recipes=URL`
-(`SINFONIA_RECIPES` envvar) repository of a Sinfonia Tier2 instance.
+The deployment recipe file is a yaml document which is expected to be named as
+a unique UUID with a .yaml extension and is stored in the `--recipes=URL`
+(`SINFONIA_RECIPES` environment variable) repository of a Sinfonia Tier2
+instance.
 
 There is an optional description field, which is used for documenting the
 purpose and customizations of this specific deployment.
@@ -93,7 +94,7 @@ class DeploymentRecipe:
 
     @classmethod
     def from_uuid(cls, uuid: UUID | str) -> DeploymentRecipe:
-        repository = current_app.config["RECIPES"]
+        repository = current_app.config["deployment_repository"]
         if isinstance(uuid, str):
             uuid = UUID(uuid)
         try:

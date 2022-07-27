@@ -36,13 +36,13 @@ class CloudletsView(MethodView):
             return "Bad Request, missing UUID", 400
 
         cloudlet = Cloudlet.new_from_api(body)
-        CLOUDLETS = current_app.config["CLOUDLETS"]
-        CLOUDLETS[cloudlet.uuid] = cloudlet
+        cloudlets = current_app.config["cloudlets"]
+        cloudlets[cloudlet.uuid] = cloudlet
         return NoContent, 204
 
     def search(self):
-        CLOUDLETS = current_app.config["CLOUDLETS"]
-        return [cloudlet.summary() for cloudlet in CLOUDLETS.values()]
+        cloudlets = current_app.config["cloudlets"]
+        return [cloudlet.summary() for cloudlet in cloudlets.values()]
 
 
 class DeployView(MethodView):
@@ -56,8 +56,8 @@ class DeployView(MethodView):
         except ValueError:
             raise ProblemException(400, "Bad Request", "Incorrectly formatted request")
 
-        matchers = current_app.config["MATCHERS"]
-        available = list(current_app.config["CLOUDLETS"].values())
+        matchers = current_app.config["match_functions"]
+        available = list(current_app.config["cloudlets"].values())
         candidates = islice(
             tier1_best_match(matchers, client_info, requested, available), max_results
         )

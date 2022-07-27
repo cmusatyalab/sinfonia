@@ -285,7 +285,7 @@ class Cloudlet:
 
         request_url = self.endpoint / str(app_uuid) / client_info.publickey.urlsafe
 
-        executor = current_app.config["EXECUTOR"]
+        executor = current_app.config["executor"]
         return executor.submit(
             deploy,
             str(request_url),
@@ -320,7 +320,7 @@ class Cloudlet:
         """Returns json encodeable 'CloudletSummary'"""
         summary = dict(
             endpoint=str(self.endpoint),
-            locations=self.locations,
+            locations=[location.coordinate for location in self.locations],
             accepted_clients=[str(client) for client in self.accepted_clients],
             rejected_clients=[str(client) for client in self.rejected_clients],
             resources=self.resources,

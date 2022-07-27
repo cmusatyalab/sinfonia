@@ -67,8 +67,8 @@ types-python-dateutil = "^2.8.17"
 tier3 = ["importlib-resources", "openapi-core", "typer", "wgconfig", "xdg"]
 
 [tool.poetry.scripts]
-sinfonia-tier1 = "sinfonia.cli:tier1"
-sinfonia-tier2 = "sinfonia.cli:tier2"
+sinfonia-tier1 = "sinfonia.app_tier1:main"
+sinfonia-tier2 = "sinfonia.app_tier2:main"
 sinfonia-tier3 = "sinfonia.cli_tier3:app"
 
 [tool.poetry.plugins."sinfonia.tier1_matchers"]

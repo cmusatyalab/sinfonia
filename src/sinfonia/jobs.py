@@ -20,14 +20,14 @@ scheduler = APScheduler()
 
 
 def expire_cloudlets():
-    CLOUDLETS = scheduler.app.config["CLOUDLETS"]
+    cloudlets = scheduler.app.config["cloudlets"]
 
     expiration = pendulum.now().subtract(minutes=5)
 
-    for cloudlet in list(CLOUDLETS.values()):
+    for cloudlet in list(cloudlets.values()):
         if cloudlet.last_update is not None and cloudlet.last_update < expiration:
             logging.info(f"Removing stale {cloudlet}")
-            CLOUDLETS.pop(cloudlet.uuid, None)
+            cloudlets.pop(cloudlet.uuid, None)
 
 
 def start_expire_cloudlets_job():

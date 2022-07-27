@@ -8,11 +8,12 @@
 """Helpers to handle a repository of deployment descriptions.
 
 Deployment descriptions are stored in a repository defined by `--recipes=URL`
-(`SINFONIA_RECIPES` envvar). This can be either a local directory, or a remote
-reference through a URL. This complicates things because we do still want to
-avoid typicaly local path traversal exploits. The inputs here are the Admin
-defined RECIPES, the UUID from the 'untrusted client', and the application
-developer specified chart and version fields in the deployment recipe file.
+(`SINFONIA_RECIPES` environment variables). This can be either a local
+directory, or a remote reference through a URL. This complicates things because
+we do still want to avoid typicaly local path traversal exploits. The inputs
+here are the Admin defined RECIPES, the UUID from the 'untrusted client', and
+the application developer specified chart and version fields in the deployment
+recipe file.
 """
 
 from __future__ import annotations

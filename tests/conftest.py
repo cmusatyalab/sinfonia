@@ -79,8 +79,8 @@ def mock_generate_keypair(monkeypatch):
 @pytest.fixture(scope="session")
 def flask_app():
     app = Flask("test")
-    app.config["GEOLITE2_READER"] = geolite2.reader()
-    app.config["MATCHERS"] = [match_by_network, match_by_location, match_random]
+    app.config["geolite2_reader"] = geolite2.reader()
+    app.config["match_functions"] = [match_by_network, match_by_location, match_random]
     return app
 
 

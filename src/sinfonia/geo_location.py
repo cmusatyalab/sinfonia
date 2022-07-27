@@ -48,7 +48,7 @@ class GeoLocation:
         """Get geolocation from ip address.
         Raises ValueError when no valid location is found for the IP address.
         """
-        geolite2_reader = current_app.config["GEOLITE2_READER"]
+        geolite2_reader = current_app.config["geolite2_reader"]
         try:
             address = ip_address(ipaddress)
             match = geolite2_reader.get(str(address))
