@@ -11,10 +11,9 @@ from __future__ import annotations
 import logging
 import socket
 from pathlib import Path
-from typing import Any
 
-import click
 import connexion
+import typer
 from attrs import define
 from connexion.resolver import MethodViewResolver
 from plumbum.colors import warn
@@ -24,6 +23,14 @@ from werkzeug.serving import get_interface_ip
 from yarl import URL
 from zeroconf import ServiceInfo, Zeroconf
 
+from .app_common import (
+    OptionalBool,
+    OptionalPath,
+    OptionalStr,
+    port_option,
+    recipes_option,
+    version_option,
+)
 from .cluster import Cluster
 from .deployment_repository import DeploymentRepository
 from .jobs import scheduler, start_expire_deployments_job, start_reporting_job
@@ -38,12 +45,12 @@ class Tier2DefaultConfig:
     TIER1_URLS: list[str] = []
     TIER2_URL: str | None = None
 
-    # these are initialized by the tier2 app factory from the defined config
-    # deployment_repository: DeploymentRepository | None = None
-    # k8s_cluster : Cluster | None = None
+    # These are initialized by the wsgi app factory from the config
+    # deployment_repository: DeploymentRepository | None = None     # RECIPES
+    # k8s_cluster : Cluster | None = None   # KUBECONFIG KUBECONTEXT PROMETHEUS
 
 
-def tier2_app_factory(**args: dict[str, Any]) -> connexion.FlaskApp:
+def tier2_app_factory(**args) -> connexion.FlaskApp:
     """Sinfonia Tier 2 API server"""
     app = connexion.FlaskApp(__name__, specification_dir="openapi/")
 
@@ -53,7 +60,6 @@ def tier2_app_factory(**args: dict[str, Any]) -> connexion.FlaskApp:
     flask_app.config.from_prefixed_env(prefix="SINFONIA")
 
     cmdargs = {k.upper(): v for k, v in args.items() if v}
-    print(cmdargs)
     flask_app.config.from_mapping(cmdargs)
 
     flask_app.config["deployment_repository"] = DeploymentRepository(
@@ -77,10 +83,7 @@ def tier2_app_factory(**args: dict[str, Any]) -> connexion.FlaskApp:
     scheduler.init_app(flask_app)
     scheduler.start()
     start_expire_deployments_job()
-
-    if flask_app.config["TIER1_URLS"] and flask_app.config["TIER2_URL"] is not None:
-        logging.info("Reporting cloudlet status to Tier1 endpoints")
-        start_reporting_job()
+    start_reporting_job()
 
     # handle running behind reverse proxy (should this be made configurable?)
     flask_app.wsgi_app = ProxyFix(flask_app.wsgi_app)
@@ -137,61 +140,56 @@ class ZeroconfMDNS:
             self.zeroconf = None
 
 
-@click.command(context_settings={"help_option_names": ["-h", "--help"]})
-@click.version_option()
-@click.option(
-    "-p",
-    "--port",
-    type=int,
-    default=5000,
-    help="Port to listen for requests",
-    show_default=True,
-)
-@click.option(
-    "--recipes",
-    type=str,
-    help="Location of Sinfonia deployment recipes (directory or url)",
-)
-@click.option(
-    "--kubeconfig",
-    type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    help="Path to kubeconfig file",
-)
-@click.option("--kubecontext", type=str, help="Name of kubeconfig context to use")
-@click.option(
-    "--prometheus",
-    type=str,
-    help="Prometheus endpoint",
-)
-@click.option(
-    "tier1_urls",
-    "--tier1-url",
-    type=str,
-    help="Base URL of Tier 1 instance to report to (may be repeated)",
-    multiple=True,
-)
-@click.option(
-    "--tier2-url",
-    type=str,
-    help="Base URL of this Tier 2 instance",
-)
-@click.option(
-    "enable_zeroconf",
-    "--zeroconf/--no-zeroconf",
-    default=False,
-    help="Announce cloudlet on local network(s) with zeroconf mdns",
-)
-def main(
-    port,
-    recipes,
-    kubeconfig,
-    kubecontext,
-    prometheus,
-    tier1_urls,
-    tier2_url,
-    enable_zeroconf,
+cli = typer.Typer()
+
+
+@cli.command()
+def tier2_server(
+    version: OptionalBool = version_option,
+    port: int = port_option,
+    recipes: OptionalStr = recipes_option,
+    kubeconfig: OptionalPath = typer.Option(
+        None,
+        help="Path to kubeconfig file",
+        show_default=False,
+        exists=True,
+        dir_okay=False,
+        resolve_path=True,
+        rich_help_panel="Kubernetes cluster config",
+    ),
+    kubecontext: OptionalStr = typer.Option(
+        None,
+        help="Name of kubeconfig context to use",
+        show_default=False,
+        rich_help_panel="Kubernetes cluster config",
+    ),
+    prometheus: OptionalStr = typer.Option(
+        None,
+        metavar="URL",
+        help="Prometheus endpoint",
+        show_default=False,
+        rich_help_panel="Kubernetes cluster config",
+    ),
+    tier1_urls: list[str] = typer.Option(
+        [],
+        "--tier1-url",
+        metavar="URL",
+        help="Base URL of Tier 1 instances to report to (may be repeated)",
+        rich_help_panel="Sinfonia Tier1 reporting",
+    ),
+    tier2_url: OptionalStr = typer.Option(
+        None,
+        metavar="URL",
+        help="Base URL of this Tier 2 instance",
+        show_default=False,
+        rich_help_panel="Sinfonia Tier1 reporting",
+    ),
+    zeroconf: bool = typer.Option(
+        False,
+        help="Announce cloudlet on local network(s) with zeroconf mdns",
+    ),
 ):
-    """Run with flask builtin server (development)"""
+    """Run Sinfonia TIer2 with Flask's builtin server (for development)"""
     app = tier2_app_factory(
         recipes=recipes,
         kubeconfig=kubeconfig,
@@ -202,12 +200,12 @@ def main(
     )
 
     # run application, optionally announcing availability with MDNS
-    zeroconf = ZeroconfMDNS()
-    if enable_zeroconf:
-        zeroconf.announce(port)
+    zeroconf_mdns = ZeroconfMDNS()
+    if zeroconf:
+        zeroconf_mdns.announce(port)
     try:
         app.run(port=port)
     except KeyboardInterrupt:
         pass
     finally:
-        zeroconf.withdraw()
+        zeroconf_mdns.withdraw()

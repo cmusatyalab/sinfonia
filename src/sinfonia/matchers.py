@@ -18,6 +18,8 @@ import random
 from operator import itemgetter
 from typing import Callable, Iterator, List, Sequence
 
+from importlib_metadata import EntryPoint, entry_points
+
 from .client_info import ClientInfo
 from .cloudlets import Cloudlet
 from .deployment_recipe import DeploymentRecipe
@@ -30,6 +32,11 @@ logger = logging.getLogger(__name__)
 Tier1MatchFunction = Callable[
     [ClientInfo, DeploymentRecipe, List[Cloudlet]], Iterator[Cloudlet]
 ]
+
+
+def get_match_function_plugins() -> dict[str, EntryPoint]:
+    """Returns a list of match function plugin entrypoints"""
+    return {ep.name: ep for ep in entry_points(group="sinfonia.tier1_matchers")}
 
 
 def tier1_best_match(

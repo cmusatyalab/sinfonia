@@ -11,35 +11,44 @@ from __future__ import annotations
 import logging
 import sys
 from pathlib import Path
-from typing import Any
 from uuid import UUID
 
-import click
 import connexion
+import typer
 from connexion.resolver import MethodViewResolver
 from flask_executor import Executor
 from geolite2 import geolite2
-from importlib_metadata import entry_points
+from rich import print
 from werkzeug.middleware.proxy_fix import ProxyFix
 from yarl import URL
 
+from .app_common import (
+    OptionalBool,
+    OptionalPath,
+    OptionalStr,
+    port_option,
+    recipes_option,
+    version_option,
+)
 from .cloudlets import Cloudlet
 from .cloudlets import load as cloudlets_load
 from .deployment_repository import DeploymentRepository
 from .jobs import scheduler, start_expire_cloudlets_job
-from .matchers import Tier1MatchFunction
+from .matchers import Tier1MatchFunction, get_match_function_plugins
 from .openapi import load_spec
 
 
 class Tier1DefaultConfig:
     CLOUDLETS: str | Path | None = None
-    RECIPES: str | Path | URL = "RECIPES"
     MATCHERS: list[str] = ["network", "location", "random"]
+    RECIPES: str | Path | URL = "RECIPES"
 
-    # these are initialized by the tier1 app factory from the defined config
-    cloudlets: dict[UUID, Cloudlet] = {}
-    deployment_repository: DeploymentRepository | None = None
-    match_functions: list[Tier1MatchFunction] = []
+    # These are initialized by the wsgi app factory from the config
+    # cloudlets: dict[UUID, Cloudlet] = {}                          # CLOUDLETS
+    # executor = Executor(flask_app)
+    # geolite2_reader = geolite2.reader()
+    # match_functions: list[Tier1MatchFunction] = []                # MATCHERS
+    # deployment_repository: DeploymentRepository | None = None     # RECIPES
 
 
 def load_cloudlets_conf(cloudlets_conf: str | Path | None) -> dict[UUID, Cloudlet]:
@@ -56,32 +65,26 @@ def load_cloudlets_conf(cloudlets_conf: str | Path | None) -> dict[UUID, Cloudle
     return {cloudlet.uuid: cloudlet for cloudlet in cloudlets}
 
 
-def list_match_functions(ctx, param, value):
-    if not value or ctx.resilient_parsing:
-        return
-
-    matchers = [ep.name for ep in entry_points(group="sinfonia.tier1_matchers")]
-
-    click.echo("Available tier1 match functions:")
-    for matcher in sorted(matchers):
-        click.echo(f"\t{matcher}")
-    ctx.exit()
+def list_match_functions(value):
+    if value:
+        print("Available tier1 match functions:")
+        matchers = get_match_function_plugins().keys()
+        print(sorted(matchers))
+        raise typer.Exit()
 
 
 def load_match_functions(matchers: list[str]) -> list[Tier1MatchFunction]:
     """load pluggable functions to select Tier2 candidates"""
     try:
-        tier1_matchers = {
-            ep.name: ep for ep in entry_points(group="sinfonia.tier1_matchers")
-        }
+        tier1_matchers = get_match_function_plugins()
         match_functions = [tier1_matchers[matcher].load() for matcher in matchers]
         logging.info(f"Loaded match functions {matchers}")
     except KeyError as e:
-        sys.exit(f"Unknown matcher {e.args[0]} selected")
+        sys.exit(f"Error: Match function '{e.args[0]}' not found")
     return match_functions
 
 
-def tier1_app_factory(**args: dict[str, Any]) -> connexion.FlaskApp:
+def wsgi_app_factory(**args) -> connexion.FlaskApp:
     """Sinfonia Tier 1 API server"""
     app = connexion.FlaskApp(__name__, specification_dir="openapi/")
 
@@ -96,13 +99,13 @@ def tier1_app_factory(**args: dict[str, Any]) -> connexion.FlaskApp:
     flask_app.config["executor"] = Executor(flask_app)
     flask_app.config["geolite2_reader"] = geolite2.reader()
 
-    flask_app.config["deployment_repository"] = DeploymentRepository(
-        flask_app.config["RECIPES"]
-    )
     with flask_app.app_context():
         flask_app.config["cloudlets"] = load_cloudlets_conf(
             flask_app.config.get("CLOUDLETS")
         )
+    flask_app.config["deployment_repository"] = DeploymentRepository(
+        flask_app.config["RECIPES"]
+    )
     flask_app.config["match_functions"] = load_match_functions(
         flask_app.config["MATCHERS"]
     )
@@ -129,44 +132,36 @@ def tier1_app_factory(**args: dict[str, Any]) -> connexion.FlaskApp:
     return app
 
 
-@click.command(context_settings={"help_option_names": ["-h", "--help"]})
-@click.version_option()
-@click.option(
-    "-p",
-    "--port",
-    type=int,
-    default=5000,
-    help="Port to listen for requests",
-    show_default=True,
-)
-@click.option(
-    "-c",
-    "--cloudlets",
-    type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    help="File containing known Tier2 cloudlets",
-)
-@click.option(
-    "--recipes",
-    type=str,
-    help="Location of Sinfonia deployment recipes (directory or url)",
-)
-@click.option(
-    "matchers",
-    "-m",
-    "--matcher",
-    type=str,
-    multiple=True,
-    help="Select Tier1 best match functions (multiple) [network, location, random]",
-)
-@click.option(
-    "--list-matchers",
-    is_flag=True,
-    callback=list_match_functions,
-    expose_value=False,
-    is_eager=True,
-    help="Show available matchers",
-)
-def main(port, cloudlets, recipes, matchers):
-    """Run with flask builtin server (development)"""
-    app = tier1_app_factory(cloudlets=cloudlets, recipes=recipes, matchers=matchers)
+cli = typer.Typer()
+
+
+@cli.command()
+def tier1_server(
+    version: OptionalBool = version_option,
+    port: int = port_option,
+    cloudlets: OptionalPath = typer.Option(
+        None,
+        help="Read YAML file containing known Tier2 cloudlets",
+        show_default=False,
+        exists=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    recipes: OptionalStr = recipes_option,
+    matchers: list[str] = typer.Option(
+        [],
+        "--match",
+        "-m",
+        help="Select Tier2 best match functions [default: network, location, random]",
+    ),
+    list_matchers: OptionalBool = typer.Option(
+        None,
+        "--list-matchers",
+        callback=list_match_functions,
+        is_eager=True,
+        help="Show available best match functions",
+    ),
+):
+    """Run Sinfonia Tier1 with Flask's builtin server (for development)"""
+    app = wsgi_app_factory(cloudlets=cloudlets, recipes=recipes, matchers=matchers)
     app.run(port=port)

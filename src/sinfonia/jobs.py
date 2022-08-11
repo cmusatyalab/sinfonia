@@ -86,6 +86,11 @@ def report_to_tier1_endpoints():
 
 
 def start_reporting_job():
+    config = scheduler.app.config
+    if not config["TIER1_URLS"] or config["TIER2_URL"] is None:
+        return
+
+    logging.info("Reporting cloudlet status to Tier1 endpoints")
     scheduler.add_job(
         func=report_to_tier1_endpoints,
         trigger="interval",

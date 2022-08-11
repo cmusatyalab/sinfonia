@@ -18,11 +18,11 @@ packages = [
 [tool.poetry.dependencies]
 # common dependencies
 python = "^3.7"
+typer = {extras = ["all"], version = "^0.6.1"}
 yarl = "^1.7.2"
 
 # tier 1,2 common dependencies
 attrs = "^21.2.0"
-click = "^8.0.3"
 connexion = {version = "^2.9.0", extras = ["swagger-ui"]}
 Flask-APScheduler = "^1.12.3"
 jsonschema = {version = ">=4.4.0, <4.6.0", extras = ["format_nongpl"]}
@@ -45,7 +45,6 @@ prance = {version = "^0.21.8", extras = ["osv"]}
 # tier 3 specific dependencies
 importlib-resources = { version = "^5.0", optional = true }
 openapi-core = { version = "^0.14.2", optional = true }
-typer = { version = "^0.4.0", optional = true }
 wgconfig = { version = "^0.2.2", optional = true }
 xdg = { version = "^5.1.1", optional = true }
 
@@ -64,11 +63,11 @@ types-jsonschema = {version = ">=4.4.0, <4.6.0"}
 types-python-dateutil = "^2.8.17"
 
 [tool.poetry.extras]
-tier3 = ["importlib-resources", "openapi-core", "typer", "wgconfig", "xdg"]
+tier3 = ["importlib-resources", "openapi-core", "wgconfig", "xdg"]
 
 [tool.poetry.scripts]
-sinfonia-tier1 = "sinfonia.app_tier1:main"
-sinfonia-tier2 = "sinfonia.app_tier2:main"
+sinfonia-tier1 = "sinfonia.app_tier1:cli"
+sinfonia-tier2 = "sinfonia.app_tier2:cli"
 sinfonia-tier3 = "sinfonia.cli_tier3:app"
 
 [tool.poetry.plugins."sinfonia.tier1_matchers"]
