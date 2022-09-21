@@ -77,6 +77,8 @@ def update_deployment_files(c):
     import yaml
 
     project_root = Path(__file__).resolve().parent
+    files_root = project_root / "deploy-tier2" / "files"
+    files_root.mkdir(exist_ok=True)
 
     manifest_patches = [
         # podmonitor_jsonpatch
@@ -135,7 +137,7 @@ def update_deployment_files(c):
         r = requests.get(url)
         r.raise_for_status()
 
-        with open(project_root / "deploy-tier2" / "files" / dest, "wb") as f:
+        with open(files_root / dest, "wb") as f:
             if dest.endswith(".yaml"):
                 result = []
                 for manifest in yaml.safe_load_all(r.content):
