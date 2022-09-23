@@ -121,7 +121,7 @@
     - crd/podmonitors.monitoring.coreos.com
     - crd/servicemonitors.monitoring.coreos.com
   retries: 6
-  delay: 10
+  delay: 15
   changed_when: False
   register: result
   until: result is success

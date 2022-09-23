@@ -17,10 +17,33 @@
     rule: allow
     port: 6443
     proto: tcp
+  when: enable_ufw
+
+- name: override resolv.conf
+  block:
+  - name: create alternate resolv.conf for coredns
+    ansible.builtin.copy:
+      dest: /etc/k3s-resolv.conf
+      content: |
+        nameserver 1.1.1.1
+
+  - name: create directory for override config
+    ansible.builtin.file:
+      path: "/etc/rancher/k3s"
+      state: directory
+      mode: "0755"
+
+  - name: make k3s use k3s-resolv.conf
+    ansible.builtin.copy:
+      dest: /etc/rancher/k3s/config.yaml
+      content: |
+        kubelet-arg:
+        - "resolv-conf=/etc/k3s-resolv.conf"
+  when: override_resolv_conf
 
 - name: create directory for config overrides
   ansible.builtin.file:
-    path: /var/lib/rancher/k3s/server/manifests
+    path: "/var/lib/rancher/k3s/server/manifests"
     state: directory
     mode: "0755"
 

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2021-2022 Carnegie Mellon University
 # SPDX-License-Identifier: MIT
 #
-# ansible playbook to bootstrap kubernetes onto a new Ubuntu 18.04 server
+# ansible playbook to bootstrap kubernetes onto a new Ubuntu 20.04 server
 # and deploy sinfonia-tier2
 #
 # run as: ansible-playbook deploy.yml -i $host,
@@ -37,6 +37,8 @@
     #sinfonia_recipes: "https://storage.cmusatyalab.org/sinfonia-recipes/"
     sinfonia_recipes: ""
     domainname: .elijah.cs.cmu.edu
+    enable_ufw: false
+    override_resolv_conf: true
 
   #environment:
   #  K8S_AUTH_KUBECONFIG: /etc/rancher/k3s/k3s.yaml

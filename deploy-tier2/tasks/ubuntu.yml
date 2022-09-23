@@ -1,16 +1,18 @@
 # SPDX-FileCopyrightText: 2021-2022 Carnegie Mellon University
 # SPDX-License-Identifier: MIT
 ---
-- name: firewall - allow ssh access
-  community.general.ufw:
-    rule: allow
-    port: ssh
-    proto: tcp
-
-- name: firewall - enable
-  community.general.ufw:
-    state: enabled
-    policy: deny
+- name: set up firewall
+  block:
+  - name: firewall - allow ssh access
+    community.general.ufw:
+      rule: allow
+      port: ssh
+      proto: tcp
+  - name: firewall - enable
+    community.general.ufw:
+      state: enabled
+      policy: deny
+  when: enable_ufw
 
 - name: install package updates
   apt:

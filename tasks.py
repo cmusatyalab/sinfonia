@@ -167,5 +167,5 @@ def build_helm_dev(c):
     # c.run("git checkout gh-pages")
     # c.run("helm repo index . --merge index.yaml")
     # c.run("git add index.yaml *.tgz")
-    # c.run("git commit -m 'Publish Helm charts'")
+    # c.run("git commit --no-verify -m 'Publish Helm charts'")
     # c.run("git checkout main")

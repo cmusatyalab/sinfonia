@@ -6,6 +6,7 @@
     rule: allow
     port: 51820
     proto: udp
+  when: enable_ufw
 
 #- name: annotate node location for kilo
 #  ansible.builtin.command:
