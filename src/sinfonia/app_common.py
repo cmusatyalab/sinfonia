@@ -9,7 +9,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 import typer
 
@@ -21,6 +21,7 @@ from . import __version__
 OptionalBool = Optional[bool]
 OptionalPath = Optional[Path]
 OptionalStr = Optional[str]
+StrList = List[str]
 
 
 def version_callback(value):

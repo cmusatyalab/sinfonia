@@ -26,6 +26,7 @@ from .app_common import (
     OptionalBool,
     OptionalPath,
     OptionalStr,
+    StrList,
     port_option,
     recipes_option,
     version_option,
@@ -148,7 +149,7 @@ def tier1_server(
         resolve_path=True,
     ),
     recipes: OptionalStr = recipes_option,
-    matchers: list[str] = typer.Option(
+    matchers: StrList = typer.Option(
         [],
         "--match",
         "-m",
