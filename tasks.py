@@ -69,7 +69,7 @@ def publish(c):
 
 @task
 def update_deployment_files(c):
-    """refresh k3s and kilo related resources"""
+    """refresh k3s, kilo and kubevirt related resources"""
     from pathlib import Path
 
     import jsonpatch
@@ -123,6 +123,11 @@ def update_deployment_files(c):
     ]
 
     kilo_manifests = "https://raw.githubusercontent.com/squat/kilo/main/manifests"
+
+    kubevirt_release = "v0.57.1"
+    kubevirt_manifests = \
+        f"https://github.com/kubevirt/kubevirt/releases/download/{kubevirt_release}"
+
     components = [
         ("https://get.k3s.io", "k3s-installer.sh"),
         (f"{kilo_manifests}/crds.yaml", "kilo-crds.yaml"),
@@ -131,6 +136,8 @@ def update_deployment_files(c):
         # (f"{kilo_manifests}/peer-validation.yaml", "kilo-peer-validation.yaml"),
         (f"{kilo_manifests}/podmonitor.yaml", "kilo-podmonitor.yaml"),
         (f"{kilo_manifests}/wg-exporter.yaml", "kilo-wg-exporter.yaml"),
+        (f"{kubevirt_manifests}/kubevirt-operator.yaml", "kubevirt-operator.yaml"),
+        (f"{kubevirt_manifests}/kubevirt-cr.yaml", "kubevirt-cr.yaml"),
     ]
     for url, dest in components:
         print("updating", dest)

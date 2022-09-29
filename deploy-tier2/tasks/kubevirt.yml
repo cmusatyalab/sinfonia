@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2022 Carnegie Mellon University
+# SPDX-License-Identifier: MIT
+---
+- name: add apparmor exception for kubevirt
+  ansible.builtin.copy:
+    dest: /etc/apparmor.d/local/usr.sbin.libvirtd
+    content: |
+      /usr/libexec/qemu-kvm rmix
+  register: apparmor_exception
+
+- name: reload apparmor profile
+  ansible.builtin.command:
+    cmd: apparmor_parser -r -W /etc/apparmor.d/usr.sbin.libvirtd
+  when: apparmor_exception is changed
+
+- name: copy kubevirt manifests
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "./{{ item }}"
+    mode: '0644'
+  loop:
+    - kubevirt-operator.yaml
+    - kubevirt-cr.yaml
+
+- name: install kubevirt manifests
+  kubernetes.core.k8s:
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+    src: "{{ item }}"
+    state: present
+  loop:
+    - kubevirt-operator.yaml
+    - kubevirt-cr.yaml
+
+- name: wait for kubevirt to finish initializing
+  ansible.builtin.command:
+    cmd: "k3s kubectl -n kubevirt wait --for=condition=Available kv/kubevirt --timeout=900s"
+  retries: 6
+  delay: 15
+  changed_when: False
+  register: result
+  until: result is success
