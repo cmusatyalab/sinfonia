@@ -27,6 +27,7 @@ from .app_common import (
     OptionalBool,
     OptionalPath,
     OptionalStr,
+    StrList,
     port_option,
     recipes_option,
     version_option,
@@ -170,7 +171,7 @@ def tier2_server(
         show_default=False,
         rich_help_panel="Kubernetes cluster config",
     ),
-    tier1_urls: list[str] = typer.Option(
+    tier1_urls: StrList = typer.Option(
         [],
         "--tier1-url",
         metavar="URL",
