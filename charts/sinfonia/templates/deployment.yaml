@@ -22,7 +22,7 @@ spec:
     spec:
       {{- if .Values.imageCredentials }}
       imagePullSecrets:
-        - name: docker-registry
+        - name: {{ include "sinfonia.fullname" }}-docker-registry
       {{- end }}
       serviceAccountName: {{ include "sinfonia.serviceAccountName" . }}
       securityContext:
