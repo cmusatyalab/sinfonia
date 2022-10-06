@@ -49,6 +49,7 @@
   - import_tasks: tasks/kube-prometheus-stack.yml
   - import_tasks: tasks/kilo.yml
   - import_tasks: tasks/nvidia_gpu_operator.yml
+  - import_tasks: tasks/kubevirt.yml
 
   #- name: configure storage...
 

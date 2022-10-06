@@ -71,13 +71,13 @@
 - name: run k3s installer
   ansible.builtin.command:
     cmd: ./k3s-installer.sh
-    creates: /etc/rancher/k3s
+    creates: /etc/rancher/k3s/k3s.yaml
 
 - name: wait for k3s to finish initializing
   ansible.builtin.command:
     cmd: k3s kubectl wait --for=condition=Ready nodes --all --timeout=900s
-  retries: 3
-  delay: 3
+  retries: 6
+  delay: 10
   changed_when: False
   register: result
   until: result is success

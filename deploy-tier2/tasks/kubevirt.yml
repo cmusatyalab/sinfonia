@@ -5,13 +5,14 @@
   ansible.builtin.copy:
     dest: /etc/apparmor.d/local/usr.sbin.libvirtd
     content: |
-      /usr/libexec/qemu-kvm rmix
+      /usr/libexec/qemu-kvm rmix,
   register: apparmor_exception
 
 - name: reload apparmor profile
   ansible.builtin.command:
     cmd: apparmor_parser -r -W /etc/apparmor.d/usr.sbin.libvirtd
   when: apparmor_exception is changed
+  ignore_errors: true
 
 - name: copy kubevirt manifests
   ansible.builtin.copy:
