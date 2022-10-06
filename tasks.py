@@ -125,8 +125,9 @@ def update_deployment_files(c):
     kilo_manifests = "https://raw.githubusercontent.com/squat/kilo/main/manifests"
 
     kubevirt_release = "v0.57.1"
-    kubevirt_manifests = \
+    kubevirt_manifests = (
         f"https://github.com/kubevirt/kubevirt/releases/download/{kubevirt_release}"
+    )
 
     components = [
         ("https://get.k3s.io", "k3s-installer.sh"),
