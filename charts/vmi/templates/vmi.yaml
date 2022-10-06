@@ -1,0 +1,26 @@
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachineInstance
+metadata:
+  name: {{ include "vmi.name" . }}
+  labels:
+    {{- include "vmi.labels" . | nindent 4 }}
+spec:
+  terminationGracePeriodSeconds: 0
+  domain:
+    devices:
+      {{- /* No networking */}}
+      autoattachPodInterface: false
+      disks:
+      - name: containerdisk
+        disk:
+          bus: virtio
+    resources:
+      {{- toYaml .Values.resources | nindent 6 }}
+  volumes:
+  - name: containerdisk
+    containerDisk:
+      image: "{{ .Values.containerDisk.repository }}/{{ .Values.containerDisk.name }}:{{ .Values.containerDisk.tag }}"
+      {{- if .Values.containerDiskCredentials }}
+      imagePullSecrets:
+        - name: {{ include "vmi.fullname" . }}-containerdisk-registry
+      {{- end }}
