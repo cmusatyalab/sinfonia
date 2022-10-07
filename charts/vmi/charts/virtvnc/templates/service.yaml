@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "virtvnc.fullname" . }}
+  name: {{ include "virtvnc.fullname" . }}-novnc
   labels:
     {{- include "virtvnc.labels" . | nindent 4 }}
 spec:
