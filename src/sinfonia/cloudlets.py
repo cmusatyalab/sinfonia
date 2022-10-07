@@ -269,7 +269,7 @@ class Cloudlet:
             url: str,
             client_address: str | None,
             client_location: tuple[float, float] | None,
-        ) -> dict[str, Any] | None:
+        ) -> list[dict[str, Any]]:
             try:
                 headers: dict[str, str] = {}
                 if client_address is not None:
@@ -281,7 +281,7 @@ class Cloudlet:
                 return r.json()
             except requests.exceptions.RequestException:
                 logger.exception("Exception while forwarding request")
-                return None
+                return []
 
         request_url = self.endpoint / str(app_uuid) / client_info.publickey.urlsafe
 
