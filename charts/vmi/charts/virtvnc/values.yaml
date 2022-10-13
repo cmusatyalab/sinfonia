@@ -42,7 +42,7 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 8001
+  port: 5800
 
 ingress:
   enabled: false
