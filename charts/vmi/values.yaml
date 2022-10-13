@@ -6,6 +6,7 @@ containerDisk:
   repository: "quay.io/kubevirt"
   name: "cirros-container-disk-demo"
   tag: latest
+  bus: virtio
 
 nameOverride: ""
 fullnameOverride: ""

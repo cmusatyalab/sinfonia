@@ -13,7 +13,7 @@ spec:
       disks:
       - name: containerdisk
         disk:
-          bus: virtio
+          bus: "{{ .Values.containerDisk.bus }}"
     resources:
       {{- toYaml .Values.resources | nindent 6 }}
   volumes:

@@ -173,6 +173,7 @@ def build_helm_dev(c):
     c.run("helm lint charts/*")
     # c.run("helm package charts/helloworld")
     # c.run("helm package charts/openrtist")
+    # c.run("helm package charts/vmi")
     c.run("helm package charts/sinfonia --version=0.0.0 --app-version=dev")
     # c.run("git checkout gh-pages")
     # c.run("helm repo index . --merge index.yaml")
