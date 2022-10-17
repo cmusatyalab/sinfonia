@@ -170,6 +170,7 @@ spec:
                 "--namespace",
                 self.name,
                 "--create-namespace",
+                "--wait",
                 "--values",
                 f.name,
                 "--replace",
