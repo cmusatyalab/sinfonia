@@ -11,6 +11,7 @@ from __future__ import annotations
 import logging
 import socket
 from pathlib import Path
+from uuid import uuid4
 
 import connexion
 import typer
@@ -47,8 +48,9 @@ class Tier2DefaultConfig:
     TIER2_URL: str | None = None
 
     # These are initialized by the wsgi app factory from the config
+    # UUID: UUID
     # deployment_repository: DeploymentRepository | None = None     # RECIPES
-    # k8s_cluster : Cluster | None = None   # KUBECONFIG KUBECONTEXT PROMETHEUS
+    # K8S_CLUSTER : Cluster | None = None   # KUBECONFIG KUBECONTEXT PROMETHEUS
 
 
 def tier2_app_factory(**args) -> connexion.FlaskApp:
@@ -63,6 +65,7 @@ def tier2_app_factory(**args) -> connexion.FlaskApp:
     cmdargs = {k.upper(): v for k, v in args.items() if v}
     flask_app.config.from_mapping(cmdargs)
 
+    flask_app.config["UUID"] = uuid4()
     flask_app.config["deployment_repository"] = DeploymentRepository(
         flask_app.config["RECIPES"]
     )
@@ -72,11 +75,7 @@ def tier2_app_factory(**args) -> connexion.FlaskApp:
         cluster = Cluster.connect(
             flask_app.config["KUBECONFIG"], flask_app.config["KUBECONTEXT"]
         )
-        cluster.prometheus_url = (
-            URL(flask_app.config["PROMETHEUS"]) / "api" / "v1" / "query"
-        )
-
-        flask_app.config["k8s_cluster"] = cluster
+        flask_app.config["K8S_CLUSTER"] = cluster
     except (ProcessExecutionError, ValueError):
         logging.warn(warn | "Failed to connect to cloudlet kubernetes instance")
 

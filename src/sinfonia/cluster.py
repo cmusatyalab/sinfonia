@@ -17,7 +17,7 @@ import math
 import random
 from ipaddress import IPv4Address
 from typing import Iterator, Sequence
-from uuid import UUID, uuid4
+from uuid import UUID
 
 import pendulum
 import requests
@@ -44,8 +44,6 @@ LEASE_DURATION = 300  # seconds
 
 @define
 class Cluster:
-    uuid: UUID = field(kw_only=True, converter=UUID)
-
     # bound commands using the current cluster config and context
     kubectl: BaseCommand = field()
     helm: BaseCommand = field()
@@ -56,16 +54,6 @@ class Cluster:
     kubedns_address: ipaddress.IPv4Address = field(
         init=False, converter=ipaddress.ip_address
     )
-
-    # currently we can only extract resource metrics from a local
-    # prometheus when we're running in a kubernetes cluster. in the long
-    # run we may have to use kubectl port-forward to punch a hole into the
-    # right cluster.
-    prometheus_url: URL = field()
-
-    @uuid.default
-    def _default_uuid(self) -> str:
-        return str(uuid4())
 
     @classmethod
     def connect(cls, kubeconfig: str = "", kubecontext: str = "") -> Cluster:
@@ -104,13 +92,6 @@ class Cluster:
             "-o",
             "jsonpath={.spec.clusterIP}",
         ).strip()
-
-    @prometheus_url.default
-    def _prometheus_url(self) -> URL:
-        # return URL("http://localhost:9090/api/v1/query")
-        return URL(
-            "http://kube-prometheus-stack-prometheus.monitoring:9090/api/v1/query"
-        )
 
     def get_peer(self, *args: str):
         selector = ",".join(args)
@@ -170,13 +151,14 @@ class Cluster:
                     return client_ip
             print("Unable to find unique client ip in 32 tries, resampling candidates")
 
-    def get_resources(self) -> dict[str, float]:
+    @classmethod
+    def get_resources(self, prometheus_url: str | URL) -> dict[str, float]:
         resources: dict[str, float] = {}
 
         for resource in RESOURCE_QUERIES:
             try:
                 r = requests.post(
-                    str(self.prometheus_url),
+                    str(URL(prometheus_url) / "api" / "v1" / "query"),
                     data={
                         "query": f"scalar({RESOURCE_QUERIES[resource]})",
                     },

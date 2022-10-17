@@ -16,6 +16,8 @@ from flask_apscheduler import APScheduler
 from requests.exceptions import RequestException
 from yarl import URL
 
+from .cluster import Cluster
+
 scheduler = APScheduler()
 
 
@@ -63,10 +65,12 @@ def start_expire_deployments_job():
 def report_to_tier1_endpoints():
     config = scheduler.app.config
 
+    tier2_uuid = config["UUID"]
     tier2_endpoint = URL(config["TIER2_URL"]) / "api/v1/deploy"
 
-    cluster = scheduler.app.config["K8S_CLUSTER"]
-    resources = cluster.get_resources()
+    # cluster = config["K8S_CLUSTER"]
+    # resources = cluster.get_resources()
+    resources = Cluster.get_resources(config["PROMETHEUS"])
 
     logging.info("Got %s", str(resources))
 
@@ -76,7 +80,7 @@ def report_to_tier1_endpoints():
             requests.post(
                 str(tier1_endpoint),
                 json={
-                    "uuid": str(cluster.uuid),
+                    "uuid": str(tier2_uuid),
                     "endpoint": str(tier2_endpoint),
                     "resources": resources,
                 },
