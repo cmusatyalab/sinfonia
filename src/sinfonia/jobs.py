@@ -16,7 +16,8 @@ from flask_apscheduler import APScheduler
 from requests.exceptions import RequestException
 from yarl import URL
 
-from .cluster import Cluster
+logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 scheduler = APScheduler()
 
@@ -68,9 +69,8 @@ def report_to_tier1_endpoints():
     tier2_uuid = config["UUID"]
     tier2_endpoint = URL(config["TIER2_URL"]) / "api/v1/deploy"
 
-    # cluster = config["K8S_CLUSTER"]
-    # resources = cluster.get_resources()
-    resources = Cluster.get_resources(config["PROMETHEUS"])
+    cluster = config["K8S_CLUSTER"]
+    resources = cluster.get_resources()
 
     logging.info("Got %s", str(resources))
 

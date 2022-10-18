@@ -41,8 +41,8 @@ from .openapi import load_spec
 
 class Tier2DefaultConfig:
     RECIPES: str | Path | URL = "RECIPES"
-    KUBECONFIG: str = ""
-    KUBECONTEXT: str = ""
+    KUBECONFIG: str = None
+    KUBECONTEXT: str = None
     PROMETHEUS: str = "http://kube-prometheus-stack-prometheus.monitoring:9090"
     TIER1_URLS: list[str] = []
     TIER2_URL: str | None = None
@@ -71,13 +71,13 @@ def tier2_app_factory(**args) -> connexion.FlaskApp:
     )
 
     # connect to local kubernetes cluster
-    try:
-        cluster = Cluster.connect(
-            flask_app.config["KUBECONFIG"], flask_app.config["KUBECONTEXT"]
-        )
-        flask_app.config["K8S_CLUSTER"] = cluster
-    except (ProcessExecutionError, ValueError):
-        logging.warn(warn | "Failed to connect to cloudlet kubernetes instance")
+    cluster = Cluster.connect(
+        flask_app.config.get("KUBECONFIG"), flask_app.config.get("KUBECONTEXT")
+    )
+    cluster.prometheus_url = (
+        URL(flask_app.config["PROMETHEUS"]) / "api" / "v1" / "query"
+    )
+    flask_app.config["K8S_CLUSTER"] = cluster
 
     # start background jobs to expire deployments and report to Tier1
     scheduler.init_app(flask_app)

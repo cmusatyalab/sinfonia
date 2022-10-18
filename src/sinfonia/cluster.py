@@ -22,7 +22,7 @@ from uuid import UUID
 import pendulum
 import requests
 from attrs import define, field
-from plumbum.cmd import helm, kubectl
+from plumbum.cmd import helm, kubectl, true
 from plumbum.commands.base import BaseCommand
 from requests.exceptions import RequestException
 from yarl import URL
@@ -55,8 +55,17 @@ class Cluster:
         init=False, converter=ipaddress.ip_address
     )
 
+    # currently we can only extract resource metrics from a local
+    # prometheus when we're running in a kubernetes cluster. in the long
+    # run we may have to use kubectl port-forward to punch a hole into the
+    # right cluster.
+    prometheus_url: URL = field()
+
     @classmethod
     def connect(cls, kubeconfig: str = "", kubecontext: str = "") -> Cluster:
+        if kubeconfig is None or kubecontext is None:
+            return cls(kubectl=true, helm=true)
+
         return cls(
             kubectl=kubectl[f"--kubeconfig={kubeconfig}", f"--context={kubecontext}"],
             helm=helm[f"--kubeconfig={kubeconfig}", f"--kube-context={kubecontext}"],
@@ -91,12 +100,19 @@ class Cluster:
             "kube-dns",
             "-o",
             "jsonpath={.spec.clusterIP}",
-        ).strip()
+        ).strip() or "8.8.8.8"
 
-    def get_peer(self, *args: str):
+    @prometheus_url.default
+    def _prometheus_url(self) -> URL:
+        # return URL("http://localhost:9090/api/v1/query")
+        return URL(
+            "http://kube-prometheus-stack-prometheus.monitoring:9090/api/v1/query"
+        )
+
+    def get_peer(self, *args: str) -> list[str]:
         selector = ",".join(args)
         result = self.kubectl("get", "peer", "-o", "json", "-l", selector)
-        return json.loads(result)["items"]
+        return json.loads(result or '{}').get("items", [])
 
     def deployments(self) -> Iterator[Deployment]:
         for ns in self.get_peer("findcloudlet.org=deployment"):
@@ -145,20 +161,19 @@ class Cluster:
         while True:
             hosts = list(CLIENT_NETWORK.hosts())
             for client_ip in random.sample(hosts, 32):
-                ns = self.get_peer(f"findcloudlet.org/client={client_ip}")
-                if not ns:
+                ns_list = self.get_peer(f"findcloudlet.org/client={client_ip}")
+                if not ns_list:
                     assert isinstance(client_ip, IPv4Address)
                     return client_ip
             print("Unable to find unique client ip in 32 tries, resampling candidates")
 
-    @classmethod
-    def get_resources(self, prometheus_url: str | URL) -> dict[str, float]:
+    def get_resources(self) -> dict[str, float]:
         resources: dict[str, float] = {}
 
         for resource in RESOURCE_QUERIES:
             try:
                 r = requests.post(
-                    str(URL(prometheus_url) / "api" / "v1" / "query"),
+                    str(self.prometheus_url),
                     data={
                         "query": f"scalar({RESOURCE_QUERIES[resource]})",
                     },
