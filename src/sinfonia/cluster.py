@@ -16,14 +16,15 @@ import logging
 import math
 import random
 from ipaddress import IPv4Address
-from typing import Iterator, Sequence
+from typing import Any, Iterator, Sequence
 from uuid import UUID
 
 import pendulum
 import requests
 from attrs import define, field
-from plumbum.cmd import helm, kubectl, true
+from plumbum.cmd import helm, kubectl
 from plumbum.commands.base import BaseCommand
+from plumbum.commands.processes import ProcessExecutionError
 from requests.exceptions import RequestException
 from yarl import URL
 
@@ -63,9 +64,6 @@ class Cluster:
 
     @classmethod
     def connect(cls, kubeconfig: str = "", kubecontext: str = "") -> Cluster:
-        if kubeconfig is None or kubecontext is None:
-            return cls(kubectl=true, helm=true)
-
         return cls(
             kubectl=kubectl[f"--kubeconfig={kubeconfig}", f"--context={kubecontext}"],
             helm=helm[f"--kubeconfig={kubeconfig}", f"--kube-context={kubecontext}"],
@@ -73,46 +71,57 @@ class Cluster:
 
     @tunnel_public_key.default
     def _tunnel_public_key(self) -> str:
-        key = self.kubectl(
-            "get",
-            "node",
-            "-o",
-            r"jsonpath={.items[0].metadata.annotations.kilo\.squat\.ai/key}",
-        ).strip()
-        return key
+        try:
+            key = self.kubectl(
+                "get",
+                "node",
+                "-o",
+                r"jsonpath={.items[0].metadata.annotations.kilo\.squat\.ai/key}",
+            ).strip()
+            return key
+        except ProcessExecutionError:
+            return ""
 
     @tunnel_endpoint.default
     def _tunnel_endpoint(self) -> str:
-        return self.kubectl(
-            "get",
-            "node",
-            "-o",
-            r"jsonpath={.items[0].metadata.annotations.kilo\.squat\.ai/endpoint}",
-        ).strip()
+        try:
+            return self.kubectl(
+                "get",
+                "node",
+                "-o",
+                r"jsonpath={.items[0].metadata.annotations.kilo\.squat\.ai/endpoint}",
+            ).strip()
+        except ProcessExecutionError:
+            return ""
 
     @kubedns_address.default
     def _kubedns_address(self) -> str:
-        return self.kubectl(
-            "-n",
-            "kube-system",
-            "get",
-            "service",
-            "kube-dns",
-            "-o",
-            "jsonpath={.spec.clusterIP}",
-        ).strip() or "8.8.8.8"
+        try:
+            return self.kubectl(
+                "-n",
+                "kube-system",
+                "get",
+                "service",
+                "kube-dns",
+                "-o",
+                "jsonpath={.spec.clusterIP}",
+            ).strip()
+        except ProcessExecutionError:
+            return "8.8.8.8"
 
     @prometheus_url.default
     def _prometheus_url(self) -> URL:
-        # return URL("http://localhost:9090/api/v1/query")
         return URL(
             "http://kube-prometheus-stack-prometheus.monitoring:9090/api/v1/query"
         )
 
-    def get_peer(self, *args: str) -> list[str]:
+    def get_peer(self, *args: str) -> list[dict[str, Any]]:
         selector = ",".join(args)
-        result = self.kubectl("get", "peer", "-o", "json", "-l", selector)
-        return json.loads(result or '{}').get("items", [])
+        try:
+            result = self.kubectl("get", "peer", "-o", "json", "-l", selector)
+            return json.loads(result)["items"]
+        except ProcessExecutionError:
+            return []
 
     def deployments(self) -> Iterator[Deployment]:
         for ns in self.get_peer("findcloudlet.org=deployment"):

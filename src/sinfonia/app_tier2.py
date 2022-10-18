@@ -8,7 +8,6 @@
 
 from __future__ import annotations
 
-import logging
 import socket
 from pathlib import Path
 from uuid import uuid4
@@ -17,8 +16,6 @@ import connexion
 import typer
 from attrs import define
 from connexion.resolver import MethodViewResolver
-from plumbum.colors import warn
-from plumbum.commands.processes import ProcessExecutionError
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.serving import get_interface_ip
 from yarl import URL
@@ -41,8 +38,8 @@ from .openapi import load_spec
 
 class Tier2DefaultConfig:
     RECIPES: str | Path | URL = "RECIPES"
-    KUBECONFIG: str = None
-    KUBECONTEXT: str = None
+    KUBECONFIG: str = ""
+    KUBECONTEXT: str = ""
     PROMETHEUS: str = "http://kube-prometheus-stack-prometheus.monitoring:9090"
     TIER1_URLS: list[str] = []
     TIER2_URL: str | None = None
