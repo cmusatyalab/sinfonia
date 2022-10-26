@@ -21,6 +21,5 @@ spec:
     containerDisk:
       image: "{{ .Values.containerDisk.repository }}/{{ .Values.containerDisk.name }}:{{ .Values.containerDisk.tag }}"
       {{- if .Values.containerDiskCredentials }}
-      imagePullSecrets:
-        - name: {{ include "vmi.fullname" . }}-containerdisk-registry
+      imagePullSecret: "{{ include "vmi.fullname" . }}-containerdisk-registry"
       {{- end }}
