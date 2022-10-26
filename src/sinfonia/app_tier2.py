@@ -154,8 +154,8 @@ def tier2_server(
         resolve_path=True,
         rich_help_panel="Kubernetes cluster config",
     ),
-    kubecontext: OptionalStr = typer.Option(
-        None,
+    kubecontext: str = typer.Option(
+        "default",
         help="Name of kubeconfig context to use",
         show_default=False,
         rich_help_panel="Kubernetes cluster config",
