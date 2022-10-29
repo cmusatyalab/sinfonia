@@ -42,3 +42,9 @@ class WireguardKey:
     @property
     def urlsafe(self) -> str:
         return urlsafe_b64encode(self.keydata).decode("utf-8").rstrip("=")
+
+    @property
+    def k8s_label(self) -> str:
+        """Kubernetes label values have to begin and end with alphanumeric
+        characters and be less than 63 byte."""
+        return f"wg-{self.urlsafe}-pubkey"

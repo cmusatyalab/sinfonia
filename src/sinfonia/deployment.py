@@ -125,7 +125,7 @@ metadata:
   labels:
     findcloudlet.org: deployment
     findcloudlet.org/uuid: "{self.recipe.uuid}"
-    findcloudlet.org/key: "{self.client_public_key.urlsafe}"
+    findcloudlet.org/key: "{self.client_public_key.k8s_label}"
     findcloudlet.org/client: "{self.client_ip}"
   annotations:
     findcloudlet.org/created: "{self.created}"

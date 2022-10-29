@@ -144,7 +144,7 @@ class Cluster:
         try:
             ns = self.get_peer(
                 f"findcloudlet.org/uuid={uuid}",
-                f"findcloudlet.org/key={key.urlsafe}",
+                f"findcloudlet.org/key={key.k8s_label}",
             )
             return Deployment.from_manifest(self, ns[0])
         except IndexError:
