@@ -3,7 +3,7 @@ entries:
   helloworld:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2022-10-26T18:03:02.172161333-04:00"
+    created: "2022-11-30T15:06:56.296551858-05:00"
     description: A Helm chart for Kubernetes
     digest: 3b9ea046e228c8e76437139f58a0974d7c88aa11e48958e6e9ed3898c5067753
     name: helloworld
@@ -13,10 +13,10 @@ entries:
     version: 0.1.0
   openrtist:
   - apiVersion: v2
-    appVersion: dev
-    created: "2022-10-26T18:03:02.172620892-04:00"
+    appVersion: v2.1
+    created: "2022-11-30T15:06:56.297008869-05:00"
     description: OpenRTiST backend
-    digest: 7c1128732388cda4d0803f01f0b3b4de018e9ecb9625b654b657eba191e05d70
+    digest: e00e7e6e99a29219933d5ade0f9c73d0d0c4dcfebac562859e31294d8b1635a0
     name: openrtist
     type: application
     urls:
@@ -25,7 +25,7 @@ entries:
   sinfonia:
   - apiVersion: v2
     appVersion: dev
-    created: "2022-10-26T18:03:02.173157192-04:00"
+    created: "2022-11-30T15:06:56.297584565-05:00"
     description: A Helm chart for deploying Sinfonia Tier1 or Tier2 in Kubernetes
     digest: dc1f8a3be70b53d6e5970e23f74cea9c2f63a16f0d2406094074b4ffac60feb8
     name: sinfonia
@@ -35,7 +35,7 @@ entries:
     version: 0.0.0
   vmi:
   - apiVersion: v2
-    created: "2022-10-26T18:03:02.173871761-04:00"
+    created: "2022-11-30T15:06:56.298293937-05:00"
     dependencies:
     - name: virtvnc
       repository: ""
@@ -47,4 +47,4 @@ entries:
     urls:
     - vmi-0.1.0.tgz
     version: 0.1.0
-generated: "2022-10-26T18:03:02.171603737-04:00"
+generated: "2022-11-30T15:06:56.295946001-05:00"
