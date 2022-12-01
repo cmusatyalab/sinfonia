@@ -33,9 +33,13 @@ class ClientInfo:
         May raise ValueError when parameters are badly formatted.
         """
         try:
-            client_address: str = request.headers.get("X-ClientIP")
+            client_address = request.headers.get("X-ClientIP")
+            if client_address is None:
+                raise KeyError
             client_ipaddress = ip_address(client_address)
         except (KeyError, ValueError):
+            if request.remote_addr is None:
+                raise ValueError
             client_ipaddress = ip_address(request.remote_addr)
 
         try:

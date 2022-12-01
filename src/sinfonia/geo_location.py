@@ -38,7 +38,7 @@ class GeoLocation:
         Raises ValueError when no valid location is found.
         """
         try:
-            location = request.headers.get("X-Location").split(",")
+            location = request.headers.get("X-Location", "").split(",")
             return cls(float(location[0]), float(location[1]))
         except (KeyError, AttributeError, IndexError, ValueError):
             raise ValueError("X-Location header missing or invalid")
