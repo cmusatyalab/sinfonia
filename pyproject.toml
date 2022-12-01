@@ -29,24 +29,19 @@ jsonschema = {version = ">=4.4.0, <4.6.0", extras = ["format_nongpl"]}
 pendulum = "^2.1.2"
 requests = "^2.26.0"
 
-# tier 2,3 common dependencies
-plumbum = "^1.7.2"
-randomname = "^0.1.5"
-zeroconf = "^0.38.7"
-
 # tier 1 specific dependencies
 Flask-Executor = "^0.10.0"
 geopy = "^2.2.0"
 importlib-metadata = "^4.12.0"
 maxminddb = "^2.2.0"
 maxminddb-geolite2 = "^2018.703"
+openapi-spec-validator = "<0.5.0"
 prance = {version = "^0.21.8", extras = ["osv"]}
 
-# tier 3 specific dependencies
-importlib-resources = { version = "^5.0", optional = true }
-openapi-core = { version = "^0.14.2", optional = true }
-wgconfig = { version = "^0.2.2", optional = true }
-xdg = { version = "^5.1.1", optional = true }
+# tier 2 specific dependencies
+plumbum = "^1.7.2"
+randomname = "^0.1.5"
+zeroconf = "^0.38.7"
 
 [tool.poetry.dev-dependencies]
 invoke = "^1.6.0"
@@ -62,25 +57,21 @@ types-requests = "^2.27.30"
 types-jsonschema = {version = ">=4.4.0, <4.6.0"}
 types-python-dateutil = "^2.8.17"
 
-[tool.poetry.extras]
-tier3 = ["importlib-resources", "openapi-core", "wgconfig", "xdg"]
-
 [tool.poetry.scripts]
 sinfonia-tier1 = "sinfonia.app_tier1:cli"
 sinfonia-tier2 = "sinfonia.app_tier2:cli"
-sinfonia-tier3 = "sinfonia.cli_tier3:app"
 
 [tool.poetry.plugins."sinfonia.tier1_matchers"]
 network = "sinfonia.matchers:match_by_network"
 location = "sinfonia.matchers:match_by_location"
 random = "sinfonia.matchers:match_random"
 
+[tool.black]
+target-version = ["py37"]
+
 [tool.isort]
 py_version = 37
 profile = "black"
-
-[tool.black]
-target-version = ["py37"]
 
 [tool.mypy]
 check_untyped_defs = true
