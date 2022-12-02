@@ -43,7 +43,7 @@ plumbum = "^1.7.2"
 randomname = "^0.1.5"
 zeroconf = "^0.38.7"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 invoke = "^1.6.0"
 jsonpatch = "^1.32"
 mypy = "^0.961"
@@ -56,6 +56,11 @@ types-PyYAML = "^6.0.8"
 types-requests = "^2.27.30"
 types-jsonschema = {version = ">=4.4.0, <4.6.0"}
 types-python-dateutil = "^2.8.17"
+
+[tool.poetry.group.admin.dependencies]
+# dependencies for sinfonia.s3_upload
+boto3 = "^1.26.21"
+tqdm = "^4.64.1"
 
 [tool.poetry.scripts]
 sinfonia-tier1 = "sinfonia.app_tier1:cli"

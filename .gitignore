@@ -3,6 +3,7 @@
 
 /deploy-tier2/files/
 /dist/
+aws_creds.json
 helloworld-*.tgz
 openrtist-*.tgz
 sinfonia-*.tgz
