@@ -24,6 +24,9 @@ def convert_wireguard_key(value: str | WireguardKey) -> bytes:
     if isinstance(value, WireguardKey):
         return value.keydata
 
+    # in case this was a key stored in a k8s label
+    value = value.lstrip("wg-").rstrip("-pubkey")
+
     raw_key = urlsafe_b64decode(value + "==")
 
     if len(raw_key) != 32:
