@@ -138,7 +138,7 @@ spec:
             )()
             # check if we are the only deployment?
             # this is probably not how to do it...
-            deployment = self.cluster.get(self.recipe.uuid, str(self.client_public_key))
+            deployment = self.cluster.get(self.recipe.uuid, self.client_public_key)
             if deployment is None or deployment == self:
                 break
 

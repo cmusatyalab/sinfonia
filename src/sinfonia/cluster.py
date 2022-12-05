@@ -129,18 +129,11 @@ class Cluster:
 
     def get(
         self,
-        uuid: str | UUID,
-        key: str | WireguardKey,
+        uuid: UUID,
+        key: WireguardKey,
         create: bool = False,
         default: Deployment | None = None,
     ) -> Deployment | None:
-        try:
-            # make sure uuid and key are correctly formatted
-            uuid = UUID(str(uuid))
-            key = WireguardKey(key)
-        except ValueError:
-            return None
-
         try:
             ns = self.get_peer(
                 f"findcloudlet.org/uuid={uuid}",
