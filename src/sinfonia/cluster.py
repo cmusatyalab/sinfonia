@@ -203,7 +203,7 @@ class Cluster:
                 str(self.prometheus_url),
                 data={
                     "query": f"wireguard_last_handshake_seconds>{cutoff.int_timestamp}"
-                    + " or delta(wireguard_latest_handshake_seconds[5m])!=0",
+                    + " or delta(wireguard_received_bytes_total[5m])!=0",
                 },
             )
             r.raise_for_status()
