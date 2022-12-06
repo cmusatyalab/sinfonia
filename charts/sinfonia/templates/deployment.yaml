@@ -42,7 +42,7 @@ spec:
             - name: SINFONIA_RECIPES
               value: {{ include "sinfonia.recipes" . }}
             {{- if and .Values.sinfoniaTier1Url .Values.sinfoniaTier2Url }}
-            - name: SINFONIA_TIER1_URLS
+            - name: SINFONIA_TIER1_URL
               value: {{ .Values.sinfoniaTier1Url }}
             - name: SINFONIA_TIER2_URL
               value: {{ .Values.sinfoniaTier2Url }}

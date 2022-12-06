@@ -58,6 +58,8 @@ def tier2_app_factory(**args) -> connexion.FlaskApp:
     flask_app.config.from_object(Tier2DefaultConfig)
     flask_app.config.from_envvar("SINFONIA_SETTINGS", silent=True)
     flask_app.config.from_prefixed_env(prefix="SINFONIA")
+    if flask_app.config.get("TIER1_URL"):
+        flask_app.config["TIER1_URLS"] = [flask_app.config["TIER1_URL"]]
 
     cmdargs = {k.upper(): v for k, v in args.items() if v}
     flask_app.config.from_mapping(cmdargs)
