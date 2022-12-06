@@ -3,9 +3,9 @@ entries:
   helloworld:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2022-12-05T20:23:58.175165329Z"
+    created: "2022-12-06T03:37:18.66600228Z"
     description: A Helm chart for Kubernetes
-    digest: 160b826c79df4441e1853928883b7ae5114ce1e56f9f3f463089d56278a0e8b6
+    digest: f567ccda919b6903396f4299285d3744629ff9ef48edd0469a8006e6f46334ba
     name: helloworld
     type: application
     urls:
@@ -14,15 +14,25 @@ entries:
   openrtist:
   - apiVersion: v2
     appVersion: v2.1
-    created: "2022-12-05T20:23:58.176157422Z"
+    created: "2022-12-06T03:37:18.666471486Z"
     description: OpenRTiST backend
-    digest: 95e6a645de1412e4505aa16c774f1c0d799b61bf8502857f8b9760bd176e2ba8
+    digest: 92ced6088a7df865a39d47142f4c3cf06b88b22aa301e63fc8e8a7e0545447ce
     name: openrtist
     type: application
     urls:
     - https://cmusatyalab.github.io/sinfonia/openrtist-0.1.0.tgz
     version: 0.1.0
   sinfonia:
+  - apiVersion: v2
+    appVersion: v0.4.3
+    created: "2022-12-06T03:37:18.667043395Z"
+    description: A Helm chart for deploying Sinfonia Tier1 or Tier2 in Kubernetes
+    digest: 94a56fe9987a96f1ac984b2980fda205a102ca66d61881e584f2753398e58b6c
+    name: sinfonia
+    type: application
+    urls:
+    - https://cmusatyalab.github.io/sinfonia/sinfonia-0.4.3.tgz
+    version: 0.4.3
   - apiVersion: v2
     appVersion: v0.4.2
     created: "2022-12-05T20:23:58.177488012Z"
@@ -55,16 +65,16 @@ entries:
     version: 0.0.0
   vmi:
   - apiVersion: v2
-    created: "2022-12-05T20:23:58.178408605Z"
+    created: "2022-12-06T03:37:18.667798506Z"
     dependencies:
     - name: virtvnc
       repository: ""
       version: 0.1.0
     description: A Helm chart for running a VM instance with Kubevirt
-    digest: d1e2aeed250eb4cea6ba1a4981272417694ec4b97035d3bd2e8a804af42ad3fe
+    digest: 4346c7810475e7b15685dec2776ec53cf227339b98c4f50680e4cd85758c98d5
     name: vmi
     type: application
     urls:
     - https://cmusatyalab.github.io/sinfonia/vmi-0.1.0.tgz
     version: 0.1.0
-generated: "2022-12-05T20:23:58.174383235Z"
+generated: "2022-12-06T03:37:18.66534967Z"
