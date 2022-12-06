@@ -115,7 +115,7 @@ class Cluster:
             "http://kube-prometheus-stack-prometheus.monitoring:9090/api/v1/query"
         )
 
-    def get_peer(self, *args: str) -> list[dict[str, Any]]:
+    def get_peers(self, *args: str) -> list[dict[str, Any]]:
         selector = ",".join(args)
         try:
             result = self.kubectl("get", "peer", "-o", "json", "-l", selector)
@@ -124,7 +124,7 @@ class Cluster:
             return []
 
     def deployments(self) -> Iterator[Deployment]:
-        for ns in self.get_peer("findcloudlet.org=deployment"):
+        for ns in self.get_peers("findcloudlet.org=deployment"):
             yield Deployment.from_manifest(self, ns)
 
     def get(
@@ -135,7 +135,7 @@ class Cluster:
         default: Deployment | None = None,
     ) -> Deployment | None:
         try:
-            ns = self.get_peer(
+            ns = self.get_peers(
                 f"findcloudlet.org/uuid={uuid}",
                 f"findcloudlet.org/key={key.k8s_label}",
             )
@@ -163,7 +163,7 @@ class Cluster:
         while True:
             hosts = list(CLIENT_NETWORK.hosts())
             for client_ip in random.sample(hosts, 32):
-                ns_list = self.get_peer(f"findcloudlet.org/client={client_ip}")
+                ns_list = self.get_peers(f"findcloudlet.org/client={client_ip}")
                 if not ns_list:
                     assert isinstance(client_ip, IPv4Address)
                     return client_ip
@@ -195,16 +195,17 @@ class Cluster:
                 pass
         return resources
 
-    def get_active_peers(
-        self, cutoff: pendulum.DateTime
-    ) -> Sequence[WireguardKey] | None:
+    def _active_peers(self, lease_duration: int) -> Sequence[WireguardKey]:
         try:
             r = requests.post(
                 str(self.prometheus_url),
-                data={
-                    "query": f"wireguard_last_handshake_seconds>{cutoff.int_timestamp}"
-                    + " or delta(wireguard_received_bytes_total[5m])!=0",
-                },
+                data=dict(
+                    query=(
+                        f"delta(wireguard_last_handshake_seconds[{lease_duration}s]!=0"
+                        " or "
+                        f"delta(wireguard_received_bytes_total[{lease_duration}s])!=0"
+                    ),
+                ),
             )
             r.raise_for_status()
 
@@ -217,15 +218,12 @@ class Cluster:
                 for peer in result["data"]["result"]
             ]
         except (RequestException, AssertionError, ValueError):
-            logging.exception("Failed to retrieve inactive peers")
-            return None
+            logging.exception("Failed to retrieve active peers")
+            return []
 
     def expire_inactive_deployments(self) -> None:
         cutoff = pendulum.now().subtract(seconds=LEASE_DURATION)
-
-        active_peers = self.get_active_peers(cutoff)
-        if active_peers is None:
-            return
+        active_peers = self._active_peers(LEASE_DURATION)
 
         for deployment in self.deployments():
             if (
