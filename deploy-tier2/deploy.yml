@@ -33,10 +33,9 @@
 
   vars:
     sinfonia_tier1_url: "{{ lookup('env', 'SINFONIA_TIER1_URL') }}"
-    sinfonia_tier2_url: "http://{{ ansible_nodename }}{{ domainname }}"
+    sinfonia_tier2_url: "http://{{ inventory_hostname }}"
     #sinfonia_recipes: "https://storage.cmusatyalab.org/sinfonia-recipes/"
     sinfonia_recipes: ""
-    domainname: .elijah.cs.cmu.edu
     enable_ufw: false
     override_resolv_conf: true
 
