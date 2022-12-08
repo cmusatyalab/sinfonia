@@ -22,6 +22,7 @@ from uuid import UUID
 import pendulum
 import requests
 from attrs import define, field
+from connexion.exceptions import ProblemException
 from plumbum.cmd import helm, kubectl
 from plumbum.commands.base import BaseCommand
 from plumbum.commands.processes import ProcessExecutionError
@@ -129,11 +130,21 @@ class Cluster:
 
     def get(
         self,
-        uuid: UUID,
-        key: WireguardKey,
+        uuid: str | UUID,
+        key: str | WireguardKey,
         create: bool = False,
         default: Deployment | None = None,
     ) -> Deployment | None:
+        try:
+            if isinstance(uuid, str):
+                uuid = UUID(uuid)
+            key = WireguardKey(key)
+        except ValueError:
+            raise ProblemException(
+                400, "Bad Request", "Failed to validate Application UUID/Key"
+            )
+
+        # check for an already deployed instance
         try:
             ns = self.get_peers(
                 f"findcloudlet.org/uuid={uuid}",
@@ -146,8 +157,10 @@ class Cluster:
         try:
             recipe = DeploymentRecipe.from_uuid(uuid)
         except ValueError:
-            logging.exception(f"Failed to retrieve recipe {uuid}")
-            return None
+            logging.exception(f"Failed to retrieve recipe for {uuid}")
+            raise ProblemException(
+                404, "Not Found", f"Failed to find recipe for {uuid}"
+            )
 
         if not create:
             return default

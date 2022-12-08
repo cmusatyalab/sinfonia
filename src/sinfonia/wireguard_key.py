@@ -25,7 +25,8 @@ def convert_wireguard_key(value: str | WireguardKey) -> bytes:
         return value.keydata
 
     # in case this was a key stored in a k8s label
-    value = value.lstrip("wg-").rstrip("-pubkey")
+    if value.startswith("wg-") and value.endswith("-pubkey"):
+        value = value[3:-7]
 
     raw_key = urlsafe_b64decode(value + "==")
 
