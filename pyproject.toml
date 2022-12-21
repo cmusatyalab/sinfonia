@@ -45,14 +45,17 @@ wireguard-tools = "^0.3.0"
 zeroconf = "^0.38.7"
 
 [tool.poetry.group.dev.dependencies]
-invoke = "^1.6.0"
+black = "^22.10.0"
 jsonpatch = "^1.32"
-mypy = "^0.961"
+poethepoet = "^0.16.5"
 pre-commit = "^2.16.0"
+tbump = "^6.9.0"
+
+[tool.poetry.group.test.dependencies]
+mypy = "^0.961"
 pytest = "^6.2.5"
 pytest-mock = "^3.6.1"
 requests-mock = "^1.9.3"
-tbump = "^6.9.0"
 types-PyYAML = "^6.0.8"
 types-requests = "^2.27.30"
 types-jsonschema = {version = ">=4.4.0, <4.6.0"}
@@ -82,6 +85,25 @@ profile = "black"
 [tool.mypy]
 check_untyped_defs = true
 files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+# ignore missing type hints errors from untyped modules
+module = [
+    "boto3.*",
+    "connexion.*",
+    "geolite2.*",
+    "geopy.*",
+    "flask_apscheduler.*",
+    "flask_executor.*",
+    "plumbum.*",
+    "prance.*",
+    "randomname.*",
+    "tqdm.*",
+]
+ignore_missing_imports = true
+
+[tool.poe]
+include = "tasks.toml"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

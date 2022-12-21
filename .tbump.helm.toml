@@ -28,9 +28,5 @@ version_template = "{major}.{minor}.{patch}"
 search = 'version: {current_version}'
 
 [[before_commit]]
-name = "run unit tests"
-cmd = "poetry run pytest"
-
-[[before_commit]]
-name = "run pre-commit checks"
-cmd = "poetry run pre-commit run -a"
+name = "run pre-commit checks and unit tests"
+cmd = "poetry run poe check"

@@ -36,16 +36,16 @@ src = "src/sinfonia/__init__.py"
 search = '__version__ = "{current_version}"'
 
 [[before_commit]]
-name = "run unit tests"
-cmd = "poetry run pytest"
+name = "run pre-commit checks and unit tests"
+cmd = "poetry run poe check"
+
+[[before_commit]]
+name = "build sdist and wheels"
+cmd = "poetry run poe build"
 
 [[before_commit]]
 name = "bump helm chart version"
-cmd = "poetry run tbump -c .tbump.helm.toml --non-interactive --only-patch {new_version}"
-
-[[before_commit]]
-name = "run pre-commit checks"
-cmd = "poetry run pre-commit run -a"
+cmd = "poetry run tbump --config=.tbump.helm.toml --non-interactive --only-patch {new_version}"
 
 #  [[after_push]]
 #  name = "publish"

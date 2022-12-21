@@ -1,0 +1,94 @@
+# SPDX-FileCopyrightText: 2022 Carnegie Mellon University
+# SPDX-License-Identifier: 0BSD
+
+[tool.poe.tasks.version]
+help = "Show current version"
+sequence = [
+    "poetry run tbump --config=.tbump.main.toml current-version",
+    "poetry run tbump --config=.tbump.helm.toml current-version",
+]
+default_item_type = "cmd"
+
+[tool.poe.tasks.build]
+help = "Build sdist and wheel"
+cmd = "poetry build"
+
+[tool.poe.tasks.check]
+help = "Run pre-commit and unit tests"
+sequence = [
+    "poetry run pre-commit run -a",
+    "poetry run mypy",
+    "poetry run pytest",
+]
+default_item_type = "cmd"
+
+[tool.poe.tasks.update-dependencies]
+help = "Update dependencies"
+sequence = [
+    {cmd = "poetry update"},
+    {cmd = "poetry run pre-commit autoupdate"},
+    {ref = "check"},
+    {cmd = "git commit --no-verify -m 'Update dependencies' poetry.lock .pre-commit-config.yaml"},
+]
+
+[tool.poe.tasks.update-deployment-files]
+help = "Refresh k3s, kilo and kubevirt related resources"
+script = "build:update_deployment_files"
+
+[tool.poe.tasks.bump-helm]
+help = "Bump helm chart version"
+cmd = "poetry run tbump --config=.tbump.helm.toml --no-tag --no-push ${helm_version}"
+args = [{name = "helm_version", positional = true, required=true}]
+
+[tool.poe.tasks.tag-release]
+help = "Bump version, build, and create a release tag"
+cmd = "poetry run tbump --config=.tbump.main.toml --no-push ${version}"
+args = [{name = "version", positional = true, required=true}]
+
+[tool.poe.tasks._ensure_version]
+shell = "test $(poetry run tbump current-version) = ${version}"
+args = [{name = "version", positional = true, required=true}]
+
+[tool.poe.tasks.publish]
+help = "Publish release to pypi and git, bump to post-release version"
+sequence = [
+    {ref = "_ensure_version ${version}"},
+    {cmd = "poetry publish"},
+    {cmd = "poetry run tbump --config=.tbump.main.toml --non-interactive --only-patch ${version}.post.dev0"},
+    {cmd = "git add --update"},
+    {cmd = "git commit --no-verify --message 'Bumping to ${version}.post.dev0'"},
+    {cmd = "git push --atomic origin main v${version}"},
+]
+args = [{name = "version", positional = true, required = true}]
+
+[tool.poe.tasks.release]
+help = "Update to release version, build, tag, and publish"
+sequence = [
+    "tag-release ${version}",
+    "publish ${version}"
+]
+args = [{name = "version", positional = true, required = true}]
+
+[tool.poe.tasks.push-docker-dev-image]
+help = "Build and push Docker image to GHCR (needs authentication)"
+sequence = [
+    "docker build -t ghcr.io/cmusatyalab/sinfonia:dev .",
+    "docker push ghcr.io/cmusatyalab/sinfonia:dev",
+]
+default_item_type = "cmd"
+
+[tool.poe.tasks.push-helm-dev-charts]
+help = "Build and publish Helm charts for development"
+sequence = [
+    "helm lint charts/*",
+    "helm package charts/sinfonia --version=0.0.0 --app-version=dev",
+    "helm package charts/helloworld --version=0.0.0 --app-version=dev",
+    "helm package charts/openrtist --version=0.0.0 --app-version=dev",
+    "helm package charts/vmi --version=0.0.0 --app-version=dev",
+    "git checkout gh-pages",
+    "helm repo index . --merge index.yaml",
+    "git add index.yaml *.tgz",
+    "git commit --no-verify -m 'Publish Helm charts'",
+    "git checkout main",
+]
+default_item_type = "cmd"
