@@ -758,6 +758,18 @@ python-versions = ">=3.6"
 plugins = ["importlib-metadata"]
 
 [[package]]
+name = "pyroute2"
+version = "0.7.4"
+description = "Python Netlink library"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+importlib-metadata = {version = "*", markers = "python_version < \"3.8\""}
+win-inet-pton = {version = "*", markers = "platform_system == \"Windows\""}
+
+[[package]]
 name = "pyrsistent"
 version = "0.19.3"
 description = "Persistent/Functional/Immutable data structures"
@@ -1286,6 +1298,26 @@ MarkupSafe = ">=2.1.1"
 watchdog = ["watchdog"]
 
 [[package]]
+name = "win-inet-pton"
+version = "1.1.0"
+description = "Native inet_pton and inet_ntop implementation for Python on Windows (with ctypes)."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "wireguard-tools"
+version = "0.3.0"
+description = "Pure python reimplementation of wireguard-tools"
+category = "main"
+optional = false
+python-versions = ">=3.7,<4.0"
+
+[package.dependencies]
+attrs = ">=22.1.0,<23.0.0"
+pyroute2 = ">=0.7.3,<0.8.0"
+
+[[package]]
 name = "yarl"
 version = "1.8.2"
 description = "Yet another URL library"
@@ -1324,7 +1356,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "4cbff887fb48c5bb990ba7a8c2ba5878f15dc8f6807a337ffa5af392586033d6"
+content-hash = "5c38cc3807c26f48e1d78cece4b5c463558d2fc4ebf7377bd5dc68bfd955610c"
 
 [metadata.files]
 apscheduler = [
@@ -1829,6 +1861,10 @@ pygments = [
     {file = "Pygments-2.14.0-py3-none-any.whl", hash = "sha256:fa7bd7bd2771287c0de303af8bfdfc731f51bd2c6a47ab69d117138893b82717"},
     {file = "Pygments-2.14.0.tar.gz", hash = "sha256:b3ed06a9e8ac9a9aae5a6f5dbe78a8a58655d17b43b93c078f094ddc476ae297"},
 ]
+pyroute2 = [
+    {file = "pyroute2-0.7.4-py3-none-any.whl", hash = "sha256:144351f01795499477f9bf58e5c1ed3f3c01059a76e1dd99dce530ee40cac289"},
+    {file = "pyroute2-0.7.4.tar.gz", hash = "sha256:775acefef4d2ace7591e620000bdf383c70c8b7969804870f6c2d8204fa217e0"},
+]
 pyrsistent = [
     {file = "pyrsistent-0.19.3-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:20460ac0ea439a3e79caa1dbd560344b64ed75e85d8703943e0b66c2a6150e4a"},
     {file = "pyrsistent-0.19.3-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4c18264cb84b5e68e7085a43723f9e4c1fd1d935ab240ce02c0324a8e01ccb64"},
@@ -2143,6 +2179,14 @@ webcolors = [
 werkzeug = [
     {file = "Werkzeug-2.2.2-py3-none-any.whl", hash = "sha256:f979ab81f58d7318e064e99c4506445d60135ac5cd2e177a2de0089bfd4c9bd5"},
     {file = "Werkzeug-2.2.2.tar.gz", hash = "sha256:7ea2d48322cc7c0f8b3a215ed73eabd7b5d75d0b50e31ab006286ccff9e00b8f"},
+]
+win-inet-pton = [
+    {file = "win_inet_pton-1.1.0-py2.py3-none-any.whl", hash = "sha256:eaf0193cbe7152ac313598a0da7313fb479f769343c0c16c5308f64887dc885b"},
+    {file = "win_inet_pton-1.1.0.tar.gz", hash = "sha256:dd03d942c0d3e2b1cf8bab511844546dfa5f74cb61b241699fa379ad707dea4f"},
+]
+wireguard-tools = [
+    {file = "wireguard_tools-0.3.0-py3-none-any.whl", hash = "sha256:29f94e704ec7bc42a752d8c7dacdee01bd53ede55be340c7daff8896b5fe5727"},
+    {file = "wireguard_tools-0.3.0.tar.gz", hash = "sha256:18bff418faa35193b26f61504ff37e64f4d3e00d53f1dac2806ff50f985abc40"},
 ]
 yarl = [
     {file = "yarl-1.8.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:bb81f753c815f6b8e2ddd2eef3c855cf7da193b82396ac013c661aaa6cc6b0a5"},

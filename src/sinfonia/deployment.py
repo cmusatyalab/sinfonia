@@ -27,9 +27,9 @@ import randomname
 import yaml
 from attrs import define, field
 from plumbum import TF
+from wireguard_tools import WireguardKey
 
 from .deployment_recipe import DeploymentRecipe
-from .wireguard_key import WireguardKey
 
 if TYPE_CHECKING:
     from .cluster import Cluster
@@ -59,11 +59,26 @@ def parse_date(value: str | pendulum.DateTime) -> pendulum.DateTime:
     return cast(pendulum.DateTime, pendulum.parse(value, exact=False))
 
 
+def key_from_k8s_label(value: str) -> WireguardKey:
+    """Convert key data that may have been stored in a k8s label.
+    Strip the pre-/postfix we added when creating the label.
+    """
+    if value.startswith("wg-") and value.endswith("-pubkey"):
+        value = value[3:-7]
+    return WireguardKey(value)
+
+
+def key_to_k8s_label(key: WireguardKey) -> str:
+    """Kubernetes label values have to begin and end with alphanumeric
+    characters and be less than 63 byte."""
+    return f"wg-{key.urlsafe}-pubkey"
+
+
 @define
 class Deployment:
-    cluster: Cluster = field()
-    recipe: DeploymentRecipe = field()
-    client_public_key: WireguardKey = field(converter=WireguardKey)
+    cluster: Cluster
+    recipe: DeploymentRecipe
+    client_public_key: WireguardKey
     client_ip: IPv4Address | IPv6Address = field(
         converter=ip_address, validator=check_in_network(CLIENT_NETWORK)
     )
@@ -94,17 +109,33 @@ class Deployment:
         )
 
     @classmethod
+    def from_deployment(
+        cls, cluster: Cluster, uuid: UUID, key: WireguardKey
+    ) -> Deployment:
+        """Recreate Deployment from already deployed backend for this user.
+
+        Raises IndexError when there is none.
+        """
+        client_key_label = key_to_k8s_label(key)
+        ns = cluster.get_peers(
+            f"findcloudlet.org/uuid={uuid}",
+            f"findcloudlet.org/key={client_key_label}",
+        )
+        return cls.from_manifest(cluster, ns[0])
+
+    @classmethod
     def from_manifest(cls, cluster: Cluster, k8s_json: dict[str, Any]) -> Deployment:
         metadata = k8s_json["metadata"]
 
         uuid = UUID(metadata["labels"]["findcloudlet.org/uuid"])
         recipe = DeploymentRecipe.from_uuid(uuid)
+        client_key = key_from_k8s_label(metadata["labels"]["findcloudlet.org/key"])
 
         return cls(
             cluster=cluster,
             name=metadata["name"],
             recipe=recipe,
-            client_public_key=metadata["labels"]["findcloudlet.org/key"],
+            client_public_key=client_key,
             client_ip=metadata["labels"]["findcloudlet.org/client"],
             created=metadata["annotations"]["findcloudlet.org/created"],
         )
@@ -114,6 +145,7 @@ class Deployment:
             if self.is_deployed():
                 return
 
+            client_key_label = key_to_k8s_label(self.client_public_key)
             self.created = self._default_created()
             (
                 self.cluster.kubectl["apply", "-f", "-"]
@@ -125,7 +157,7 @@ metadata:
   labels:
     findcloudlet.org: deployment
     findcloudlet.org/uuid: "{self.recipe.uuid}"
-    findcloudlet.org/key: "{self.client_public_key.k8s_label}"
+    findcloudlet.org/key: "{client_key_label}"
     findcloudlet.org/client: "{self.client_ip}"
   annotations:
     findcloudlet.org/created: "{self.created}"

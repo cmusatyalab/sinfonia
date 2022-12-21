@@ -27,11 +27,11 @@ from plumbum.cmd import helm, kubectl
 from plumbum.commands.base import BaseCommand
 from plumbum.commands.processes import ProcessExecutionError
 from requests.exceptions import RequestException
+from wireguard_tools import WireguardKey
 from yarl import URL
 
 from .deployment import CLIENT_NETWORK, Deployment
 from .deployment_recipe import DeploymentRecipe
-from .wireguard_key import WireguardKey
 
 RESOURCE_QUERIES = {
     "cpu_ratio": 'sum(rate(node_cpu_seconds_total{mode!="idle"}[1m])) / sum(node:node_num_cpu:sum)',  # noqa
@@ -71,7 +71,7 @@ class Cluster:
         )
 
     @tunnel_public_key.default
-    def _tunnel_public_key(self) -> str:
+    def _tunnel_public_key(self) -> WireguardKey:
         try:
             key = self.kubectl(
                 "get",
@@ -79,9 +79,10 @@ class Cluster:
                 "-o",
                 r"jsonpath={.items[0].metadata.annotations.kilo\.squat\.ai/key}",
             ).strip()
-            return key
+            return WireguardKey(key)
         except ProcessExecutionError:
-            return ""
+            # fake it until we break it
+            return WireguardKey.generate().public_key()
 
     @tunnel_endpoint.default
     def _tunnel_endpoint(self) -> str:
@@ -138,7 +139,8 @@ class Cluster:
         try:
             if isinstance(uuid, str):
                 uuid = UUID(uuid)
-            key = WireguardKey(key)
+            if isinstance(key, str):
+                key = WireguardKey(key)
         except ValueError:
             raise ProblemException(
                 400, "Bad Request", "Failed to validate Application UUID/Key"
@@ -146,11 +148,7 @@ class Cluster:
 
         # check for an already deployed instance
         try:
-            ns = self.get_peers(
-                f"findcloudlet.org/uuid={uuid}",
-                f"findcloudlet.org/key={key.k8s_label}",
-            )
-            return Deployment.from_manifest(self, ns[0])
+            return Deployment.from_deployment(self, uuid, key)
         except IndexError:
             pass
 

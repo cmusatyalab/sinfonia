@@ -41,6 +41,7 @@ prance = {version = "^0.21.8", extras = ["osv"]}
 # tier 2 specific dependencies
 plumbum = "^1.7.2"
 randomname = "^0.1.5"
+wireguard-tools = "^0.3.0"
 zeroconf = "^0.38.7"
 
 [tool.poetry.group.dev.dependencies]

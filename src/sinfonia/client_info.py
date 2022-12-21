@@ -12,18 +12,18 @@ from __future__ import annotations
 
 from ipaddress import IPv4Address, IPv6Address, ip_address
 
-from attrs import define, field
+from attrs import define
 from flask import request
+from wireguard_tools import WireguardKey
 
 from .geo_location import GeoLocation
-from .wireguard_key import WireguardKey
 
 
 @define
 class ClientInfo:
     """ClientInfo encapsulates what we know of the Tier3 client."""
 
-    publickey: WireguardKey = field(converter=WireguardKey)
+    publickey: WireguardKey
     ipaddress: IPv4Address | IPv6Address
     location: GeoLocation | None
 
@@ -48,7 +48,7 @@ class ClientInfo:
             client_location = None
 
         return cls(
-            publickey=application_key,
+            publickey=WireguardKey(application_key),
             ipaddress=client_ipaddress,
             location=client_location,
         )
@@ -61,4 +61,8 @@ class ClientInfo:
     ) -> ClientInfo:
         ipaddress = ip_address(address)
         location = GeoLocation.from_address(ipaddress)
-        return cls(publickey=application_key, ipaddress=ipaddress, location=location)
+        return cls(
+            publickey=WireguardKey(application_key),
+            ipaddress=ipaddress,
+            location=location,
+        )
