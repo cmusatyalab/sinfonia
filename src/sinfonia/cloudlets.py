@@ -217,7 +217,6 @@ class Cloudlet:
         rejected_clients: NetworkList | None = None,
         resources: dict[str, float] | None = None,
     ) -> Cloudlet:
-
         if locations is not None or location is not None:
             geolocations = [GeoLocation.from_tuple(coord) for coord in locations or []]
 

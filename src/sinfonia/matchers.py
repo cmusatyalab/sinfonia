@@ -61,6 +61,7 @@ def match_by_network(
     """Yields any cloudlets that claim to be local.
     Also removes cloudlets that explicitly blacklist the client address
     """
+
     # Used to jump the loop whenever a cloudlet can be removed from the list
     class DropCloudlet(Exception):
         pass
