@@ -214,7 +214,7 @@ class Cluster:
                 str(self.prometheus_url),
                 data=dict(
                     query=(
-                        f"delta(wireguard_last_handshake_seconds[{lease_duration}s]!=0"
+                        f"delta(wireguard_last_handshake_seconds[{lease_duration}s])!=0"
                         " or "
                         f"delta(wireguard_received_bytes_total[{lease_duration}s])!=0"
                     ),
