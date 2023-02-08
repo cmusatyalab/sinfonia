@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 Carnegie Mellon University
+# SPDX-FileCopyrightText: 2022-2023 Carnegie Mellon University
 # SPDX-License-Identifier: 0BSD
 
 [tool.poe.tasks.version]
@@ -46,14 +46,13 @@ cmd = "poetry run tbump --config=.tbump.main.toml --no-push ${version}"
 args = [{name = "version", positional = true, required=true}]
 
 [tool.poe.tasks._ensure_version]
-shell = "test $(poetry run tbump current-version) = ${version}"
+shell = "test $(poetry run tbump --config=.tbump.main.toml current-version) = ${version}"
 args = [{name = "version", positional = true, required=true}]
 
 [tool.poe.tasks.publish]
 help = "Publish release to pypi and git, bump to post-release version"
 sequence = [
     {ref = "_ensure_version ${version}"},
-    {cmd = "poetry publish"},
     {cmd = "poetry run tbump --config=.tbump.main.toml --non-interactive --only-patch ${version}.post.dev0"},
     {cmd = "git add --update"},
     {cmd = "git commit --no-verify --message 'Bumping to ${version}.post.dev0'"},
