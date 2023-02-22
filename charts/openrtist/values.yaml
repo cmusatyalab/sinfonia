@@ -23,7 +23,7 @@ fullnameOverride: ""
 #
 # So if you want to use the gpu, specify both
 #
-# runtimeClass: "nvidia"
+# runtimeClassName: "nvidia"
 # resources:
 #   limits:
 #     nvidia.com/gpu: 1

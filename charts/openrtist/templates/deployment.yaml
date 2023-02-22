@@ -27,8 +27,8 @@ spec:
       serviceAccountName: {{ include "openrtist.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      {{- if .Values.runtimeClass }}
-      runtimeClassName: {{ .Values.runtimeClass }}
+      {{- if .Values.runtimeClassName }}
+      runtimeClassName: {{ .Values.runtimeClassName }}
       {{- end }}
       containers:
         - name: {{ template "openrtist.name" . }}
@@ -42,13 +42,6 @@ spec:
               protocol: TCP
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      {{- if eq (.Values.runtimeClass | default "") "nvidia" }}
-          env:
-            - name: NVIDIA_VISIBLE_DEVICES
-              value: all
-            - name: NVIDIA_DRIVER_CAPABILITIES
-              value: compute,utility
-      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
