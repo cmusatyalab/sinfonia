@@ -7,4 +7,4 @@
 #
 # SPDX-License-Identifier: MIT
 #
-__version__ = "0.4.5.post.dev0"
+__version__ = "0.4.6"
