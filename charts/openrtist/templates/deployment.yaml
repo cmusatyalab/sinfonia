@@ -42,7 +42,7 @@ spec:
               protocol: TCP
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      {{- if .Values.runtimeClass == "nvidia" }}
+      {{- if eq (.Values.runtimeClass | default "") "nvidia" }}
           env:
             - name: NVIDIA_VISIBLE_DEVICES
               value: all
