@@ -3,7 +3,7 @@
 
 [tool.poetry]
 name = "sinfonia"
-version = "0.4.6.post.dev0"
+version = "0.4.7"
 description = "Tier 1 and 2 components of the Sinfonia system"
 authors = [
     "Carnegie Mellon University <satya+group@cs.cmu.edu>",
