@@ -12,14 +12,14 @@ from .conftest import BAD_CONTENT, BAD_UUID, GOOD_CONTENT, GOOD_UUID
 class TestDeploymentRepository:
     def test_create_remote(self):
         repo = DeploymentRepository("http://test/example")
-        assert repo.base_url == URL("http://test/example/")
+        assert repo.base_url == URL("http://test/example")
 
     def test_create_local(self):
         repo = DeploymentRepository("/root")
-        assert repo.base_url == URL("file:///root/")
+        assert repo.base_url == URL("file:///root")
 
         repo = DeploymentRepository("root")
-        assert repo.base_url.path.endswith("/root/")
+        assert repo.base_url.path.endswith("/root")
 
     @pytest.mark.parametrize("root_url", ["http://test/", "file:///test/"])
     def test_join(self, root_url):
