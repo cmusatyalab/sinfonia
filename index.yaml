@@ -3,9 +3,9 @@ entries:
   helloworld:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2023-02-22T17:30:16.911434613Z"
+    created: "2023-05-03T02:47:45.921175675Z"
     description: A Helm chart for Kubernetes
-    digest: 7e7fde5e1d7ce12461cbd92f460db5ed6327ff5562a883eb9fc66ee8bf5f4598
+    digest: 6dddf927b1c42ebcabe1f1beb38eb9ad5fe265150eb3a170eb04f14902060b91
     name: helloworld
     type: application
     urls:
@@ -14,9 +14,9 @@ entries:
   openrtist:
   - apiVersion: v2
     appVersion: v2.1
-    created: "2023-02-22T17:30:16.912042415Z"
+    created: "2023-05-03T02:47:45.92164538Z"
     description: OpenRTiST backend
-    digest: e3cfb979a980c8c52e5aeee55c71ac1d10208bee946a091e16be89b1072c2b05
+    digest: d51192a4baccf46a2714b4798e9f8d3473ec8846c56e48bdc0ac197c8c22d9b6
     name: openrtist
     type: application
     urls:
@@ -43,6 +43,16 @@ entries:
     - openrtist-0.1.0.tgz
     version: 0.1.0
   sinfonia:
+  - apiVersion: v2
+    appVersion: v0.4.9
+    created: "2023-05-03T02:47:45.922216087Z"
+    description: A Helm chart for deploying Sinfonia Tier1 or Tier2 in Kubernetes
+    digest: 329a4728a632952984217cb132a9678e59af8c896f187ba82cbe0ebe24093a33
+    name: sinfonia
+    type: application
+    urls:
+    - https://cmusatyalab.github.io/sinfonia/sinfonia-0.4.9.tgz
+    version: 0.4.9
   - apiVersion: v2
     appVersion: v0.4.8
     created: "2023-02-22T17:30:16.912548716Z"
@@ -137,4 +147,4 @@ entries:
     urls:
     - vmi-0.1.0.tgz
     version: 0.1.0
-generated: "2023-02-22T17:30:16.910505711Z"
+generated: "2023-05-03T02:47:45.920538768Z"
