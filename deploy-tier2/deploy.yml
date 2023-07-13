@@ -23,7 +23,7 @@
 
   - name: update local copy of deployment files
     ansible.builtin.command:
-      cmd: poetry run invoke update-deployment-files
+      cmd: poetry run poe update-deployment-files
       creates: "files/kilo-wg-exporter.yaml"
 
 - hosts: all
