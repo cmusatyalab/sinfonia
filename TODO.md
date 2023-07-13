@@ -1,11 +1,11 @@
 Tier 1
 ======
 
-- actually use gathered metrics in decision making
-
 - Tier1 GET should return list of cloudlets without deploying
 
 - Better documentation for cloudlet.yaml local configuration file
+
+- Improve error reporting on failed deployments, right now it is just a 500 error
 
 
 Tier 2
@@ -16,7 +16,8 @@ Tier 2
   Althought the tier2 pod starts pretty quickly, it takes almost 4 minutes
   before all the other pods are done after a reboot. And this is on a cloudlet
   where all containers are fully cached and kernel modules have already been
-  built.
+  built. Right now we are already reporting to tier1 before we're actually
+  ready to accept work.
 
 - How to handle a multi-node cloudlet, we have to check resource utilization on
   a per node basis and report the best available one(s)?
@@ -55,6 +56,7 @@ Tier 2
 
 - report known/supported application uuids to Tier 1?
 
+- Improve error reporting on failed deployments, right now it is just a 500 error
 
 Tier 3
 ======
@@ -62,4 +64,12 @@ Tier 3
 - Improve dependencies.  Should we move this back to click for argument
   parsing, or switch the rest over to typer.
 
+    No longer relevant, tier3 got split off into it's own project.
+
 - Split out functionality, merge common code.
+
+    Done: see
+
+    - https://github.com/cmusatyalab/sinfonia-tier3
+    - https://github.com/cmusatyalab/wireguard4netns
+    - https://github.com/cmusatyalab/wireguard-tools
