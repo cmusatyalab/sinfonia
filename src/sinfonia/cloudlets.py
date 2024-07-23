@@ -289,9 +289,11 @@ class Cloudlet:
             deploy,
             str(request_url),
             str(client_info.ipaddress) if client_info.ipaddress is not None else None,
-            client_info.location.coordinate
-            if client_info.location is not None
-            else None,
+            (
+                client_info.location.coordinate
+                if client_info.location is not None
+                else None
+            ),
         )
 
     def deploy(self, app_uuid: UUID, client_info: ClientInfo) -> dict[str, Any]:
