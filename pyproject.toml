@@ -44,6 +44,9 @@ randomname = "^0.1.5"
 wireguard-tools = "^0.4.0"
 zeroconf = "^0.38.7"
 
+# workaround for an odd dependency issue in poetry export
+urllib3 = "<1.27"
+
 [tool.poetry.group.dev.dependencies]
 black = "^22.10.0"
 jsonpatch = "^1.32"
