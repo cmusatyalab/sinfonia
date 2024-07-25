@@ -18,8 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
-      - name: Set up python
+        uses: actions/checkout@v4
+      - name: Install Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.8"
@@ -30,20 +30,27 @@ jobs:
     needs: pre-commit
     strategy:
       matrix:
-        python-version: [3.7, "3.10"]
+        python-version: ["3.7", "3.10"]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
-      - name: Install poetry
-        run: pipx install poetry
-      - name: Set up python
-        id: setup-python
+        uses: actions/checkout@v4
+      - name: Install Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'poetry'
-      - name: Install project
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2
+      - name: Setup local environment for caching
+        run: |
+          poetry config virtualenvs.create true --local
+          poetry config virtualenvs.in-project true --local
+      - name: Define cache for virtual environments
+        uses: actions/cache@v3
+        with:
+          path: ./.venv
+          key: venv-${{ hashFiles('poetry.lock') }}
+      - name: Install project dependencies
         run: poetry install --no-interaction
       - name: Run tests
         run: poetry run pytest -v tests/
