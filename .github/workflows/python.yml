@@ -20,7 +20,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.8"
       - name: Run pre-commit checks
@@ -36,20 +36,19 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install poetry
-        uses: abatilo/actions-poetry@v2
-      - name: Setup local environment for caching
+      - name: Install Poetry
         run: |
-          poetry config virtualenvs.create true --local
-          poetry config virtualenvs.in-project true --local
-      - name: Define cache for virtual environments
+          pipx install poetry
+          echo "POETRY_CACHE_DIR=$(pip cache dir)" >> $GITHUB_ENV
+      - name: Cache poetry
         uses: actions/cache@v3
         with:
-          path: ./.venv
-          key: venv-${{ hashFiles('poetry.lock') }}
+          path: ${{ env.POETRY_CACHE_DIR }}
+          key: ${{ runner.os }}-poetry-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: ${{ runner.os }}-poetry-${{ matrix.python-version }}
       - name: Install project dependencies
         run: poetry install --no-interaction
       - name: Run tests
