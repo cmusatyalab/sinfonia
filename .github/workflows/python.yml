@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: "3.8"
       - name: Run pre-commit checks
-        uses: pre-commit/action@v3.0.0
+        uses: pre-commit/action@v3.0.1
   tests:
     name: Tests
     needs: pre-commit
@@ -44,7 +44,7 @@ jobs:
           pipx install poetry
           echo "POETRY_CACHE_DIR=$(pip cache dir)" >> $GITHUB_ENV
       - name: Cache poetry
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.POETRY_CACHE_DIR }}
           key: ${{ runner.os }}-poetry-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
