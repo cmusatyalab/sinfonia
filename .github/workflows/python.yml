@@ -48,8 +48,8 @@ jobs:
         with:
           path: ${{ env.POETRY_CACHE_DIR }}
           key: ${{ runner.os }}-poetry-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
-        restore-keys: ${{ runner.os }}-poetry-${{ matrix.python-version }}
+          restore-keys: ${{ runner.os }}-poetry-${{ matrix.python-version }}
       - name: Install project dependencies
-        run: poetry install --no-interaction
+        run: poetry install --sync --no-interaction
       - name: Run tests
         run: poetry run pytest -v tests/
